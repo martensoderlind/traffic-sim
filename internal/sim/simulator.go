@@ -58,3 +58,29 @@ func (s *Simulator) update(){
 		}
 	}
 }
+
+func BuildIntersections(roads []*road.Road, nodes []*road.Node) []*road.Intersection {
+m := make(map[string]*road.Intersection)
+
+
+for _, n := range nodes {
+m[n.ID] = road.NewIntersection(n.ID)
+}
+
+
+// Assign roads to intersections
+for _, r := range roads {
+in := m[r.From.ID]
+out := m[r.To.ID]
+in.AddOutgoing(r)
+out.AddIncoming(r)
+}
+
+
+// Flatten to slice
+intersections := make([]*road.Intersection, 0, len(m))
+for _, i := range m {
+intersections = append(intersections, i)
+}
+return intersections
+}
