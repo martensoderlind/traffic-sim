@@ -39,7 +39,7 @@ func (ps *PathfindingSystem) findNextRoad(w *world.World, v *vehicle.Vehicle) *r
 
 	available := make([]*road.Road, 0, len(intersection.Outgoing))
 	for _, r := range intersection.Outgoing {
-		if r.ID != v.Road.ID {
+		if notSameRoad(r,v.Road){
 			available = append(available, r)
 		}
 	}
@@ -49,4 +49,8 @@ func (ps *PathfindingSystem) findNextRoad(w *world.World, v *vehicle.Vehicle) *r
 	}
 
 	return available[rand.Intn(len(available))]
+}
+
+func notSameRoad(r1, r2 *road.Road) bool {
+    return !(r1.From == r2.To && r1.To == r2.From)
 }
