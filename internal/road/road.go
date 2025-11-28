@@ -31,9 +31,9 @@ func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
 
 }
 
-func (r *Road) PosAt(dist float64) (float64, float64) {
+func (r *Road) PosAt(dist float64) (float64, float64,float64) {
     t := dist / r.Length // 0..1
     x := r.From.X + t*(r.To.X-r.From.X)
     y := r.From.Y + t*(r.To.Y-r.From.Y)
-    return x, y
+    return x, y,t
 }
