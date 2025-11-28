@@ -59,7 +59,7 @@ func (tb *Toolbar) setupUI() {
 	tb.uiManager.AddButton(tb.bidirToggle)
 	
 	tb.modeIndicator = NewLabel(10, 60, "Mode: Normal")
-	tb.modeIndicator.Size = 16
+	tb.modeIndicator.Size = 14
 	bgColor := color.RGBA{40, 40, 50, 230}
 	tb.modeIndicator.SetBackground(bgColor)
 	tb.uiManager.AddLabel(tb.modeIndicator)
