@@ -15,11 +15,13 @@ type Mode int
 const (
 	ModeNormal Mode = iota
 	ModeRoadBuilding
+	ModeNodeMoving
 )
 
 type InputHandler struct {
 	mode           Mode
 	roadTool       *tools.RoadBuildingTool
+	moveTool       *tools.NodeMoveTool
 	mouseX, mouseY int
 }
 
@@ -27,10 +29,12 @@ func NewInputHandler(w *world.World) *InputHandler {
 	executor := commands.NewCommandExecutor(w)
 	query := query.NewWorldQuery(w)
 	roadTool := tools.NewRoadBuildingTool(executor, query)
+	moveTool := tools.NewNodeMoveTool(executor, query)
 	
 	return &InputHandler{
 		mode:     ModeNormal,
 		roadTool: roadTool,
+		moveTool: moveTool,
 	}
 }
 
@@ -40,6 +44,10 @@ func (h *InputHandler) Mode() Mode {
 
 func (h *InputHandler) RoadTool() *tools.RoadBuildingTool {
 	return h.roadTool
+}
+
+func (h *InputHandler) MoveTool() *tools.NodeMoveTool {
+	return h.moveTool
 }
 
 func (h *InputHandler) MousePos() (int, int) {
@@ -62,10 +70,20 @@ func (h *InputHandler) handleModeSwitch() {
 			h.roadTool.Cancel()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyM) {
+		if h.mode == ModeNormal {
+			h.mode = ModeNodeMoving
+		} else {
+			h.mode = ModeNormal
+			h.moveTool.EndDrag()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
 		h.roadTool.Cancel()
+		h.moveTool.EndDrag()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
@@ -74,15 +92,34 @@ func (h *InputHandler) handleModeSwitch() {
 }
 
 func (h *InputHandler) handleToolInput() {
-	if h.mode != ModeRoadBuilding {
-		return
+	switch h.mode {
+	case ModeRoadBuilding:
+		h.handleRoadBuildingInput()
+	case ModeNodeMoving:
+		h.handleNodeMovingInput()
 	}
-	
+}
+
+func (h *InputHandler) handleRoadBuildingInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		h.roadTool.Click(float64(h.mouseX), float64(h.mouseY))
 	}
 	
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.roadTool.Cancel()
+	}
+}
+
+func (h *InputHandler) handleNodeMovingInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.moveTool.StartDrag(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && h.moveTool.IsDragging() {
+		h.moveTool.UpdateDrag(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		h.moveTool.EndDrag()
 	}
 }

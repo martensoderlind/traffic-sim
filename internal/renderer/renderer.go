@@ -86,10 +86,52 @@ func (r *Renderer) renderNodes(screen *ebiten.Image){
 }
 
 func (r *Renderer) renderToolOverlay(screen *ebiten.Image) {
-	if r.InputHandler.Mode() != input.ModeRoadBuilding {
-		return
+	mode := r.InputHandler.Mode()
+	
+	if mode == input.ModeRoadBuilding {
+		r.renderRoadBuildingOverlay(screen)
+	} else if mode == input.ModeNodeMoving {
+		r.renderNodeMovingOverlay(screen)
 	}
+}
 
+func (r *Renderer) renderNodeMovingOverlay(screen *ebiten.Image) {
+	mouseX, mouseY := r.InputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	moveTool := r.InputHandler.MoveTool()
+	
+	if moveTool.IsDragging() {
+		draggedNode := moveTool.GetDraggedNode()
+		if draggedNode != nil {
+			vector.StrokeCircle(
+				screen,
+				float32(draggedNode.X),
+				float32(draggedNode.Y),
+				15,
+				3,
+				color.RGBA{255, 100, 255, 255},
+				false,
+			)
+		}
+	} else {
+		hoverNode := moveTool.GetHoverNode(mx, my)
+		if hoverNode != nil {
+			vector.StrokeCircle(
+				screen,
+				float32(hoverNode.X),
+				float32(hoverNode.Y),
+				12,
+				2,
+				color.RGBA{255, 150, 255, 200},
+				false)
+		}
+	}
+}
+
+
+func (r *Renderer) renderRoadBuildingOverlay(screen *ebiten.Image) {
 	mouseX, mouseY := r.InputHandler.MousePos()
 	mx := float64(mouseX)
 	my := float64(mouseY)
