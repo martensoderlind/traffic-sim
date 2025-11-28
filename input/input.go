@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -21,11 +22,13 @@ type InputHandler struct {
 	world *sim.World
 	mode  Mode
 
-	// State for road placement
 	selectedNode     *road.Node
 	hoverNode        *road.Node
 	mouseX, mouseY   int
 	maxSnapDistance  float64
+	minNodeDistance  float64
+	nodeCounter      int
+	bidirectional    bool 
 }
 
 func NewInputHandler(world *sim.World) *InputHandler {
@@ -33,6 +36,9 @@ func NewInputHandler(world *sim.World) *InputHandler {
 		world:           world,
 		mode:            ModeNormal,
 		maxSnapDistance: 20.0, 
+		minNodeDistance: 30.0, 
+		nodeCounter:     1000, 
+		bidirectional:   true, 
 	}
 }
 
@@ -48,15 +54,18 @@ func (h *InputHandler) HoverNode() *road.Node {
 	return h.hoverNode
 }
 
+func (h *InputHandler) Bidirectional() bool {
+	return h.bidirectional
+}
+
 func (h *InputHandler) MousePos() (int, int) {
 	return h.mouseX, h.mouseY
 }
 
 func (h *InputHandler) Update() {
-	// Update mouse position
+	
 	h.mouseX, h.mouseY = ebiten.CursorPosition()
 
-	// Toggle mode with 'R' key (Road mode)
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 		if h.mode == ModeNormal {
 			h.mode = ModePlacingRoad
@@ -67,18 +76,19 @@ func (h *InputHandler) Update() {
 		}
 	}
 
-	// Cancel current action with Escape
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
 		h.selectedNode = nil
 	}
 
-	// Update hover node
+	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		h.bidirectional = !h.bidirectional
+	}
+
 	h.world.Mu.RLock()
 	h.hoverNode = h.findNearestNode(float64(h.mouseX), float64(h.mouseY))
 	h.world.Mu.RUnlock()
 
-	// Handle mode-specific input
 	switch h.mode {
 	case ModePlacingRoad:
 		h.updatePlacingRoad()
@@ -87,44 +97,86 @@ func (h *InputHandler) Update() {
 
 func (h *InputHandler) updatePlacingRoad() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		if h.hoverNode == nil {
-			return
+		var clickedNode *road.Node
+
+		if h.hoverNode != nil {
+			clickedNode = h.hoverNode
+		} else {
+			if h.canPlaceNodeAt(float64(h.mouseX), float64(h.mouseY)) {
+				clickedNode = h.createNode(float64(h.mouseX), float64(h.mouseY))
+			} else {
+				return 
+			}
 		}
 
-		// First click - select start node
 		if h.selectedNode == nil {
-			h.selectedNode = h.hoverNode
+			h.selectedNode = clickedNode
 			return
 		}
 
-		// Second click - create road
-		if h.selectedNode != h.hoverNode {
-			h.createRoad(h.selectedNode, h.hoverNode)
-			h.selectedNode = nil // Reset for next road
+		if h.selectedNode != clickedNode {
+			h.createRoad(h.selectedNode, clickedNode)
+			h.selectedNode = nil 
 		}
 	}
 
-	// Right click to cancel selection
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.selectedNode = nil
 	}
+}
+
+func (h *InputHandler) canPlaceNodeAt(x, y float64) bool {
+	h.world.Mu.RLock()
+	defer h.world.Mu.RUnlock()
+
+	for _, node := range h.world.Nodes {
+		dx := node.X - x
+		dy := node.Y - y
+		dist := math.Sqrt(dx*dx + dy*dy)
+
+		if dist < h.minNodeDistance {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (h *InputHandler) createNode(x, y float64) *road.Node {
+	h.world.Mu.Lock()
+	defer h.world.Mu.Unlock()
+
+	h.nodeCounter++
+	nodeID := fmt.Sprintf("n%d", h.nodeCounter)
+
+	newNode := &road.Node{
+		ID: nodeID,
+		X:  x,
+		Y:  y,
+	}
+
+	h.world.Nodes = append(h.world.Nodes, newNode)
+
+	newIntersection := road.NewIntersection(nodeID)
+	h.world.Intersections = append(h.world.Intersections, newIntersection)
+	h.world.IntersectionsByNode[nodeID] = newIntersection
+
+	return newNode
 }
 
 func (h *InputHandler) createRoad(from, to *road.Node) {
 	h.world.Mu.Lock()
 	defer h.world.Mu.Unlock()
 
-	// Create road in both directions
 	newRoad := road.NewRoad(
 		from.ID+"-"+to.ID,
 		from,
 		to,
-		40.0, // Default speed
+		40.0,
 	)
 
 	h.world.Roads = append(h.world.Roads, newRoad)
 
-	// Update intersections
 	fromIntersection := h.world.IntersectionsByNode[from.ID]
 	toIntersection := h.world.IntersectionsByNode[to.ID]
 
@@ -134,6 +186,25 @@ func (h *InputHandler) createRoad(from, to *road.Node) {
 
 	if toIntersection != nil {
 		toIntersection.AddIncoming(newRoad)
+	}
+
+	if h.bidirectional {
+		reverseRoad := road.NewRoad(
+			to.ID+"-"+from.ID,
+			to,
+			from,
+			40.0, 
+		)
+
+		h.world.Roads = append(h.world.Roads, reverseRoad)
+
+		if toIntersection != nil {
+			toIntersection.AddOutgoing(reverseRoad)
+		}
+
+		if fromIntersection != nil {
+			fromIntersection.AddIncoming(reverseRoad)
+		}
 	}
 }
 
