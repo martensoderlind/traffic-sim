@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
+	"traffic-sim/input"
 	"traffic-sim/internal/renderer"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/sim"
@@ -16,9 +17,11 @@ type Game struct {
 	renderer  *renderer.Renderer
 	simulator *sim.Simulator
 	world     *sim.World
+	InputHandler *input.InputHandler
 }
 
 func (g *Game) Update() error {
+	g.InputHandler.Update()
 	g.simulator.UpdateOnce()
 	return nil
 }
@@ -75,12 +78,15 @@ func main() {
 
 	simulator := sim.NewSimulator(world, 16*time.Millisecond) // ~60 FPS
 
+	inputHandler := input.NewInputHandler(world)
+
 	rend := &renderer.Renderer{World: world}
 
 	game := &Game{
 		renderer:  rend,
 		simulator: simulator,
 		world:     world,
+		InputHandler: inputHandler,
 	}
 
 	ebiten.SetWindowSize(800, 600)
