@@ -37,7 +37,16 @@ func (r *Road) UpdateLength() {
 }
 
 func (r *Road) PosAt(dist float64) (float64, float64) {
+    if r.Length == 0 {
+        return r.From.X, r.From.Y
+    }
     t := dist / r.Length
+    if t > 1 {
+        t = 1
+    }
+    if t < 0 {
+        t = 0
+    }
     x := r.From.X + t*(r.To.X-r.From.X)
     y := r.From.Y + t*(r.To.Y-r.From.Y)
     return x, y

@@ -23,6 +23,14 @@ func (c *MoveNodeCommand) Execute(w *world.World) error {
 			rd.UpdateLength()
 		}
 	}
+	
+	for _, v := range w.Vehicles {
+		if v.Road.From == c.Node || v.Road.To == c.Node {
+			x, y := v.Road.PosAt(v.Distance)
+			v.Pos.X = x
+			v.Pos.Y = y
+		}
+	}
 
 	return nil
 }

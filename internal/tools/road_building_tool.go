@@ -80,10 +80,9 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 				return err
 			}
 			
-			clickedNode = &road.Node{
-				ID: nodeID,
-				X:  snapX,
-				Y:  snapY,
+			clickedNode = t.query.FindNodeByID(nodeID)
+			if clickedNode == nil {
+				return fmt.Errorf("failed to find created node")
 			}
 		} else {
 			if !t.query.CanPlaceNodeAt(mouseX, mouseY, t.minNodeDist) {
@@ -103,10 +102,9 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 				return err
 			}
 			
-			clickedNode = &road.Node{
-				ID: nodeID,
-				X:  mouseX,
-				Y:  mouseY,
+			clickedNode = t.query.FindNodeByID(nodeID)
+			if clickedNode == nil {
+				return fmt.Errorf("failed to find created node")
 			}
 		}
 	}

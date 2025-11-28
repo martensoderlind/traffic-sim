@@ -35,6 +35,19 @@ func (q *WorldQuery) FindNearestNode(x, y, maxDistance float64) *road.Node {
 	return nearest
 }
 
+func (q *WorldQuery) FindNodeByID(id string) *road.Node {
+	q.world.Mu.RLock()
+	defer q.world.Mu.RUnlock()
+
+	for _, node := range q.world.Nodes {
+		if node.ID == id {
+			return node
+		}
+	}
+
+	return nil
+}
+
 func (q *WorldQuery) CanPlaceNodeAt(x, y, minDistance float64) bool {
 	q.world.Mu.RLock()
 	defer q.world.Mu.RUnlock()
