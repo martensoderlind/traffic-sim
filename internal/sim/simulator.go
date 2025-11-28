@@ -10,19 +10,20 @@ import (
 )
 
 type Simulator struct {
-	world *World
+	world    *World
 	tickRate time.Duration
 }
+
 type World struct {
- 	Roads         []*road.Road
-    Nodes         []*road.Node
-    Vehicles      []*vehicle.Vehicle
-    Intersections []*road.Intersection
+	Roads         []*road.Road
+	Nodes         []*road.Node
+	Vehicles      []*vehicle.Vehicle
+	Intersections []*road.Intersection
 
-    // Fast lookup
-    IntersectionsByNode map[string]*road.Intersection
+	// Fast lookup
+	IntersectionsByNode map[string]*road.Intersection
 
-    Mu sync.RWMutex
+	Mu sync.RWMutex
 }
 
 func BuildIntersections(roads []*road.Road, nodes []*road.Node) []*road.Intersection {
@@ -47,19 +48,19 @@ func BuildIntersections(roads []*road.Road, nodes []*road.Node) []*road.Intersec
 }
 
 func NewWorld(roads []*road.Road, nodes []*road.Node, vehicles []*vehicle.Vehicle) *World {
-    w := &World{
-        Roads:               roads,
-        Nodes:               nodes,
-        Vehicles:            vehicles,
-        IntersectionsByNode: make(map[string]*road.Intersection),
-    }
+	w := &World{
+		Roads:               roads,
+		Nodes:               nodes,
+		Vehicles:            vehicles,
+		IntersectionsByNode: make(map[string]*road.Intersection),
+	}
 
-    w.Intersections = BuildIntersections(roads, nodes)
-    for _, i := range w.Intersections {
-        w.IntersectionsByNode[i.ID] = i
-    }
+	w.Intersections = BuildIntersections(roads, nodes)
+	for _, i := range w.Intersections {
+		w.IntersectionsByNode[i.ID] = i
+	}
 
-    return w
+	return w
 }
 
 func NewSimulator(world *World, tickRate time.Duration) *Simulator {
@@ -73,58 +74,59 @@ func (s *Simulator) Start() {
 	}
 }
 
+func (s *Simulator) UpdateOnce() {
+	s.update()
+}
+
 func (s *Simulator) nextRoadFor(v *vehicle.Vehicle) *road.Road {
-    for _, i := range s.world.Intersections {
-        if i.ID == v.Road.To.ID {
-            if len(i.Outgoing) == 0 {
-                return nil
-            }
-            
-            available := make([]*road.Road, 0, len(i.Outgoing))
-            for _, r := range i.Outgoing {
-                if r.ID != v.Road.ID { 
-                    available = append(available, r)
-                }
-            }
-            
-            if len(available) == 0 {
-                return nil  
-            }
-            
-            return available[rand.Intn(len(available))]
-        }
-    }
-    return nil
+	for _, i := range s.world.Intersections {
+		if i.ID == v.Road.To.ID {
+			if len(i.Outgoing) == 0 {
+				return nil
+			}
+
+			available := make([]*road.Road, 0, len(i.Outgoing))
+			for _, r := range i.Outgoing {
+				if r.ID != v.Road.ID {
+					available = append(available, r)
+				}
+			}
+
+			if len(available) == 0 {
+				return nil
+			}
+
+			return available[rand.Intn(len(available))]
+		}
+	}
+	return nil
 }
 
 func (s *Simulator) update() {
-    s.world.Mu.Lock()
-    defer s.world.Mu.Unlock()
+	s.world.Mu.Lock()
+	defer s.world.Mu.Unlock()
 
-    dt := s.tickRate.Seconds()
+	dt := s.tickRate.Seconds()
 
-    for _, v := range s.world.Vehicles {
+	for _, v := range s.world.Vehicles {
+		newDist := v.Distance + v.Speed*dt
 
-        newDist := v.Distance + v.Speed*dt
+		if newDist >= v.Road.Length {
+			next := s.nextRoadFor(v)
 
-        if newDist >= v.Road.Length {
+			if next != nil {
+				v.Road = next
+				v.Distance = 0
+			} else {
+				v.Distance = v.Road.Length
+				v.Speed = 0
+			}
+		} else {
+			v.Distance = newDist
+		}
 
-            next := s.nextRoadFor(v)
-
-            if next != nil {
-                v.Road = next
-                v.Distance = 0
-            } else {
-                v.Distance = v.Road.Length
-                v.Speed = 0
-            }
-
-        } else {
-            v.Distance = newDist
-        }
-
-        x, y := v.Road.PosAt(v.Distance)
-        v.Pos.X = x
-        v.Pos.Y = y
-    }
+		x, y := v.Road.PosAt(v.Distance)
+		v.Pos.X = x
+		v.Pos.Y = y
+	}
 }
