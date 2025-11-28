@@ -14,18 +14,22 @@ type Simulator struct {
 	tickRate time.Duration
 }
 type World struct {
-	Roads []*road.Road
-	Nodes []*road.Node
-	Intersections []*road.Intersection
-	Vehicles []*vehicle.Vehicle
-	Mu sync.RWMutex
+ 	Roads         []*road.Road
+    Nodes         []*road.Node
+    Vehicles      []*vehicle.Vehicle
+    Intersections []*road.Intersection
+
+    // Fast lookup
+    IntersectionsByNode map[string]*road.Intersection
+
+    Mu sync.RWMutex
 }
 
 func BuildIntersections(roads []*road.Road, nodes []*road.Node) []*road.Intersection {
 	m := make(map[string]*road.Intersection)
 
 	for _, n := range nodes {
-	m[n.ID] = road.NewIntersection(n.ID)
+		m[n.ID] = road.NewIntersection(n.ID)
 	}
 
 	for _, r := range roads {
@@ -41,13 +45,21 @@ func BuildIntersections(roads []*road.Road, nodes []*road.Node) []*road.Intersec
 	}
 	return intersections
 }
+
 func NewWorld(roads []*road.Road, nodes []*road.Node, vehicles []*vehicle.Vehicle) *World {
-	return &World{
-		Roads: roads,
-		Nodes: nodes,
-		Intersections: BuildIntersections(roads, nodes),
-		Vehicles: vehicles,
-	}
+    w := &World{
+        Roads:               roads,
+        Nodes:               nodes,
+        Vehicles:            vehicles,
+        IntersectionsByNode: make(map[string]*road.Intersection),
+    }
+
+    w.Intersections = BuildIntersections(roads, nodes)
+    for _, i := range w.Intersections {
+        w.IntersectionsByNode[i.ID] = i
+    }
+
+    return w
 }
 
 func NewSimulator(world *World, tickRate time.Duration) *Simulator {
