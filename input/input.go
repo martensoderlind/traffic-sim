@@ -28,17 +28,17 @@ type InputHandler struct {
 	maxSnapDistance  float64
 	minNodeDistance  float64
 	nodeCounter      int
-	bidirectional    bool // Toggle for creating roads in both directions
+	bidirectional    bool
 }
 
 func NewInputHandler(world *sim.World) *InputHandler {
 	return &InputHandler{
 		world:           world,
 		mode:            ModeNormal,
-		maxSnapDistance: 20.0, // pixels
-		minNodeDistance: 30.0, // minimum distance between nodes
-		nodeCounter:     1000, // start counter high to avoid conflicts with existing IDs
-		bidirectional:   true, // Default to bidirectional roads
+		maxSnapDistance: 20.0, 
+		minNodeDistance: 30.0, 
+		nodeCounter:     1000, 
+		bidirectional:   true, 
 	}
 }
 
