@@ -20,7 +20,6 @@ type World struct {
 	Vehicles      []*vehicle.Vehicle
 	Intersections []*road.Intersection
 
-	// Fast lookup
 	IntersectionsByNode map[string]*road.Intersection
 
 	Mu sync.RWMutex
