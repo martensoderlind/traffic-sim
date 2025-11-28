@@ -2,15 +2,14 @@ package renderer
 
 import (
 	"image/color"
+	"traffic-sim/internal/world"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-
-	"traffic-sim/internal/sim"
 )
 
 type Renderer struct {
-	World *sim.World
+	World *world.World
 }
 
 func (r *Renderer) Update() error {

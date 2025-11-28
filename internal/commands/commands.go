@@ -3,11 +3,11 @@ package commands
 import (
 	"fmt"
 	"traffic-sim/internal/road"
-	"traffic-sim/internal/sim"
+	"traffic-sim/internal/world"
 )
 
 type Command interface {
-	Execute(world *sim.World) error
+	Execute(w *world.World) error
 }
 
 type CreateNodeCommand struct {
@@ -15,14 +15,9 @@ type CreateNodeCommand struct {
 	NodeID string
 }
 
-type CreateRoadCommand struct {
-	From, To *road.Node
-	MaxSpeed float64
-}
-
-func (c *CreateNodeCommand) Execute(world *sim.World) error {
-	world.Mu.Lock()
-	defer world.Mu.Unlock()
+func (c *CreateNodeCommand) Execute(w *world.World) error {
+	w.Mu.Lock()
+	defer w.Mu.Unlock()
 
 	newNode := &road.Node{
 		ID: c.NodeID,
@@ -30,26 +25,31 @@ func (c *CreateNodeCommand) Execute(world *sim.World) error {
 		Y:  c.Y,
 	}
 
-	world.Nodes = append(world.Nodes, newNode)
+	w.Nodes = append(w.Nodes, newNode)
 
 	newIntersection := road.NewIntersection(c.NodeID)
-	world.Intersections = append(world.Intersections, newIntersection)
-	world.IntersectionsByNode[c.NodeID] = newIntersection
+	w.Intersections = append(w.Intersections, newIntersection)
+	w.IntersectionsByNode[c.NodeID] = newIntersection
 
 	return nil
 }
 
-func (c *CreateRoadCommand) Execute(world *sim.World) error {
-	world.Mu.Lock()
-	defer world.Mu.Unlock()
+type CreateRoadCommand struct {
+	From, To *road.Node
+	MaxSpeed float64
+}
+
+func (c *CreateRoadCommand) Execute(w *world.World) error {
+	w.Mu.Lock()
+	defer w.Mu.Unlock()
 
 	roadID := fmt.Sprintf("%s-%s", c.From.ID, c.To.ID)
 	newRoad := road.NewRoad(roadID, c.From, c.To, c.MaxSpeed)
 
-	world.Roads = append(world.Roads, newRoad)
+	w.Roads = append(w.Roads, newRoad)
 
-	fromIntersection := world.IntersectionsByNode[c.From.ID]
-	toIntersection := world.IntersectionsByNode[c.To.ID]
+	fromIntersection := w.IntersectionsByNode[c.From.ID]
+	toIntersection := w.IntersectionsByNode[c.To.ID]
 
 	if fromIntersection != nil {
 		fromIntersection.AddOutgoing(newRoad)
@@ -63,11 +63,11 @@ func (c *CreateRoadCommand) Execute(world *sim.World) error {
 }
 
 type CommandExecutor struct {
-	world *sim.World
+	world *world.World
 }
 
-func NewCommandExecutor(world *sim.World) *CommandExecutor {
-	return &CommandExecutor{world: world}
+func NewCommandExecutor(w *world.World) *CommandExecutor {
+	return &CommandExecutor{world: w}
 }
 
 func (e *CommandExecutor) Execute(cmd Command) error {

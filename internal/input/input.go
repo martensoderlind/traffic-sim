@@ -6,8 +6,8 @@ import (
 
 	"traffic-sim/internal/commands"
 	"traffic-sim/internal/query"
-	"traffic-sim/internal/sim"
 	"traffic-sim/internal/tools"
+	"traffic-sim/internal/world"
 )
 
 type Mode int
@@ -23,9 +23,9 @@ type InputHandler struct {
 	mouseX, mouseY int
 }
 
-func NewInputHandler(world *sim.World) *InputHandler {
-	executor := commands.NewCommandExecutor(world)
-	query := query.NewWorldQuery(world)
+func NewInputHandler(w *world.World) *InputHandler {
+	executor := commands.NewCommandExecutor(w)
+	query := query.NewWorldQuery(w)
 	roadTool := tools.NewRoadBuildingTool(executor, query)
 	
 	return &InputHandler{

@@ -3,15 +3,15 @@ package query
 import (
 	"math"
 	"traffic-sim/internal/road"
-	"traffic-sim/internal/sim"
+	"traffic-sim/internal/world"
 )
 
 type WorldQuery struct {
-	world *sim.World
+	world *world.World
 }
 
-func NewWorldQuery(world *sim.World) *WorldQuery {
-	return &WorldQuery{world: world}
+func NewWorldQuery(w *world.World) *WorldQuery {
+	return &WorldQuery{world: w}
 }
 
 func (q *WorldQuery) FindNearestNode(x, y, maxDistance float64) *road.Node {
