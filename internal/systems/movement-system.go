@@ -5,10 +5,20 @@ import (
 	"traffic-sim/internal/world"
 )
 
-type MovementSystem struct{}
+type MovementSystem struct {
+	lookAheadDist float64
+	deceleration  float64
+	acceleration  float64
+	minSpeed      float64
+}
 
 func NewMovementSystem() *MovementSystem {
-	return &MovementSystem{}
+	return &MovementSystem{
+		lookAheadDist: 50.0,
+		deceleration:  15.0,
+		acceleration:  10.0,
+		minSpeed:      5.0,
+	}
 }
 
 func (ms *MovementSystem) Update(w *world.World, dt float64) {
@@ -16,39 +26,65 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 	defer w.Mu.Unlock()
 
 	for _, v := range w.Vehicles {
+		targetSpeed := ms.calculateTargetSpeed(w, v)
+		
+		ms.adjustSpeed(v, targetSpeed, dt)
+		
 		newDist := v.Distance + v.Speed*dt
-
 		if newDist >= v.Road.Length {
 			v.Distance = v.Road.Length
 		} else {
 			v.Distance = newDist
 		}
 
-		x, y, t := v.Road.PosAt(v.Distance)
+		x, y:= v.Road.PosAt(v.Distance)
 		v.Pos.X = x
 		v.Pos.Y = y
-		ms.handleSpeed(t,v)
 	}
 }
 
-func (ms *MovementSystem) handleSpeed(t float64,v *vehicle.Vehicle){
-	if t > 0.9 {
-		ms.slowDown(v)
-		return
+func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicle) float64 {
+	distToEnd := v.Road.Length - v.Distance
+	
+	if distToEnd > ms.lookAheadDist {
+		return v.Road.MaxSpeed
 	}
-	if t<0.9 && v.Speed<v.Road.MaxSpeed{
-		ms.accelerate(v)
-		return
-	} 
+	
+	intersection := w.IntersectionsByNode[v.Road.To.ID]
+	if intersection == nil || len(intersection.Outgoing) == 0 {
+		ratio := distToEnd / ms.lookAheadDist
+		return ms.minSpeed + (v.Road.MaxSpeed-ms.minSpeed)*ratio
+	}
+	
+	hasValidExit := false
+	for _, r := range intersection.Outgoing {
+		if !(r.From == v.Road.To && r.To == v.Road.From) {
+			hasValidExit = true
+			break
+		}
+	}
+	
+	if !hasValidExit {
+		ratio := distToEnd / ms.lookAheadDist
+		return ms.minSpeed + (v.Road.MaxSpeed-ms.minSpeed)*ratio
+	}
+	
+	return v.Road.MaxSpeed
 }
 
-func (ms *MovementSystem) slowDown(v *vehicle.Vehicle){
-	if v.Speed >10 {
-		v.Speed = v.Speed*0.90
-	}
-}
-func (ms *MovementSystem) accelerate(vehicle *vehicle.Vehicle ){
-	if vehicle.Speed < vehicle.Road.MaxSpeed {
-		vehicle.Speed = vehicle.Speed*1.1
+func (ms *MovementSystem) adjustSpeed(v *vehicle.Vehicle, targetSpeed, dt float64) {
+	if v.Speed < targetSpeed {
+		v.Speed += ms.acceleration * dt
+		if v.Speed > targetSpeed {
+			v.Speed = targetSpeed
+		}
+	} else if v.Speed > targetSpeed {
+		v.Speed -= ms.deceleration * dt
+		if v.Speed < targetSpeed {
+			v.Speed = targetSpeed
+		}
+		if v.Speed < ms.minSpeed {
+			v.Speed = ms.minSpeed
+		}
 	}
 }
