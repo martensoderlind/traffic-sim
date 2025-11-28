@@ -3,6 +3,7 @@ package renderer
 import (
 	"image/color"
 	"traffic-sim/internal/input"
+	"traffic-sim/internal/ui"
 	"traffic-sim/internal/world"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,6 +13,15 @@ import (
 type Renderer struct {
 	World        *world.World
 	InputHandler *input.InputHandler
+	Toolbar      *ui.Toolbar
+}
+
+func NewRenderer(w *world.World, inputHandler *input.InputHandler) *Renderer {
+	return &Renderer{
+		World:        w,
+		InputHandler: inputHandler,
+		Toolbar:      ui.NewToolbar(inputHandler),
+	}
 }
 
 func (r *Renderer) Update() error {
@@ -125,7 +135,8 @@ func (r *Renderer) renderNodeMovingOverlay(screen *ebiten.Image) {
 				12,
 				2,
 				color.RGBA{255, 150, 255, 200},
-				false)
+				false,
+			)
 		}
 	}
 }
@@ -236,6 +247,8 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	r.renderRoads(screen)
 	r.renderVehicles(screen)
 	r.renderToolOverlay(screen)
+	
+	r.Toolbar.Draw(screen)
 }
 
 func (r *Renderer) Layout(w, h int) (int, int) {

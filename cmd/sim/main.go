@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"traffic-sim/internal/input"
 	"traffic-sim/internal/renderer"
@@ -22,6 +23,10 @@ type Game struct {
 }
 
 func (g *Game) Update() error {
+	mouseX, mouseY := ebiten.CursorPosition()
+	clicked := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+	
+	g.renderer.Toolbar.Update(mouseX, mouseY, clicked)
 	g.InputHandler.Update()
 	g.simulator.UpdateOnce()
 	return nil
@@ -80,10 +85,7 @@ func main() {
 	simulator := sim.NewSimulator(world, 16*time.Millisecond)
 	inputHandler := input.NewInputHandler(world)
 
-	rend := &renderer.Renderer{
-		World:        world,
-		InputHandler: inputHandler,
-	}
+	rend := renderer.NewRenderer(world, inputHandler)
 
 	game := &Game{
 		renderer:     rend,

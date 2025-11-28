@@ -42,6 +42,20 @@ func (h *InputHandler) Mode() Mode {
 	return h.mode
 }
 
+func (h *InputHandler) SetMode(mode Mode) {
+	if h.mode == mode {
+		return
+	}
+	
+	h.roadTool.Cancel()
+	h.moveTool.EndDrag()
+	h.mode = mode
+}
+
+func (h *InputHandler) ToggleBidirectional() {
+	h.roadTool.SetBidirectional(!h.roadTool.IsBidirectional())
+}
+
 func (h *InputHandler) RoadTool() *tools.RoadBuildingTool {
 	return h.roadTool
 }
