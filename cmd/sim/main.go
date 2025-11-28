@@ -11,12 +11,13 @@ import (
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/sim"
 	"traffic-sim/internal/vehicle"
+	"traffic-sim/internal/world"
 )
 
 type Game struct {
 	renderer  *renderer.Renderer
 	simulator *sim.Simulator
-	world     *sim.World
+	world     *world.World
 	InputHandler *input.InputHandler
 }
 
@@ -70,7 +71,7 @@ func main() {
 		Speed:    35,
 	}
 
-	world := sim.NewWorld(
+	world := world.New(
 		[]*road.Road{r1, r2, r3, r4, r5},
 		[]*road.Node{n1, n2, n3, n4},
 		[]*vehicle.Vehicle{v1, v2, v3},
