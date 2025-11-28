@@ -28,17 +28,17 @@ type InputHandler struct {
 	maxSnapDistance  float64
 	minNodeDistance  float64
 	nodeCounter      int
-	bidirectional    bool 
+	bidirectional    bool // Toggle for creating roads in both directions
 }
 
 func NewInputHandler(world *sim.World) *InputHandler {
 	return &InputHandler{
 		world:           world,
 		mode:            ModeNormal,
-		maxSnapDistance: 20.0, 
-		minNodeDistance: 30.0, 
-		nodeCounter:     1000, 
-		bidirectional:   true, 
+		maxSnapDistance: 20.0, // pixels
+		minNodeDistance: 30.0, // minimum distance between nodes
+		nodeCounter:     1000, // start counter high to avoid conflicts with existing IDs
+		bidirectional:   true, // Default to bidirectional roads
 	}
 }
 
@@ -63,7 +63,6 @@ func (h *InputHandler) MousePos() (int, int) {
 }
 
 func (h *InputHandler) Update() {
-	
 	h.mouseX, h.mouseY = ebiten.CursorPosition()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
@@ -105,7 +104,7 @@ func (h *InputHandler) updatePlacingRoad() {
 			if h.canPlaceNodeAt(float64(h.mouseX), float64(h.mouseY)) {
 				clickedNode = h.createNode(float64(h.mouseX), float64(h.mouseY))
 			} else {
-				return 
+				return
 			}
 		}
 
@@ -116,6 +115,9 @@ func (h *InputHandler) updatePlacingRoad() {
 
 		if h.selectedNode != clickedNode {
 			h.createRoad(h.selectedNode, clickedNode)
+			if h.bidirectional {
+				h.createRoad(clickedNode, h.selectedNode)
+			}
 			h.selectedNode = nil 
 		}
 	}
@@ -186,25 +188,6 @@ func (h *InputHandler) createRoad(from, to *road.Node) {
 
 	if toIntersection != nil {
 		toIntersection.AddIncoming(newRoad)
-	}
-
-	if h.bidirectional {
-		reverseRoad := road.NewRoad(
-			to.ID+"-"+from.ID,
-			to,
-			from,
-			40.0, 
-		)
-
-		h.world.Roads = append(h.world.Roads, reverseRoad)
-
-		if toIntersection != nil {
-			toIntersection.AddOutgoing(reverseRoad)
-		}
-
-		if fromIntersection != nil {
-			fromIntersection.AddIncoming(reverseRoad)
-		}
 	}
 }
 
