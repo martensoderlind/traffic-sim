@@ -67,13 +67,7 @@ func (r *Renderer) renderRoads(screen *ebiten.Image){
 		)
 	}
 }
-
-func (r *Renderer) Draw(screen *ebiten.Image) {
-	r.World.Mu.RLock()
-	defer r.World.Mu.RUnlock()
-
-	screen.Fill(color.RGBA{20, 20, 30, 255})
-
+func (r *Renderer) renderNodes(screen *ebiten.Image){
 	for _, node := range r.World.Nodes {
 		x := float32(node.X)
 		y := float32(node.Y)
@@ -86,6 +80,15 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 			false,
 		)
 	}
+}
+
+func (r *Renderer) Draw(screen *ebiten.Image) {
+	r.World.Mu.RLock()
+	defer r.World.Mu.RUnlock()
+
+	screen.Fill(color.RGBA{20, 20, 30, 255})
+	
+	r.renderNodes(screen)
 	r.renderRoads(screen)
 	r.renderVehicles(screen)
 }
