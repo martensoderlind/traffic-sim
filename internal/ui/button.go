@@ -13,6 +13,7 @@ type Button struct {
 	Width, Height float64
 	Text          string
 	OnClick       func()
+	Padding float64
 	
 	hovered bool
 	pressed bool
@@ -32,6 +33,7 @@ func NewButton(x, y, width, height float64, text string, onClick func()) *Button
 		Height:      height,
 		Text:        text,
 		OnClick:     onClick,
+		Padding: 8,
 		bgColor:     color.RGBA{60, 60, 70, 255},
 		hoverColor:  color.RGBA{80, 80, 90, 255},
 		pressColor:  color.RGBA{50, 50, 60, 255},
@@ -76,27 +78,27 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	
 	vector.FillRect(
 		screen,
-		float32(b.X),
-		float32(b.Y),
-		float32(b.Width),
-		float32(b.Height),
+			float32(b.X-b.Padding),
+			float32(b.Y-b.Padding),
+			float32(b.Width+b.Padding*2),
+			float32(b.Height+b.Padding*2),
 		bgColor,
 		false,
 	)
 	
 	vector.StrokeRect(
 		screen,
-		float32(b.X),
-		float32(b.Y),
-		float32(b.Width),
-		float32(b.Height),
+		float32(b.X-b.Padding),
+		float32(b.Y-b.Padding),
+		float32(b.Width+b.Padding*2),
+		float32(b.Height+b.Padding*2),
 		2,
 		b.borderColor,
 		false,
 	)
 	
 	op := &text.DrawOptions{}
-	op.GeoM.Translate(b.X+8, b.Y+b.Height/2-6)
+	op.GeoM.Translate(b.X+b.Padding, b.Y+b.Padding)
 	op.ColorScale.ScaleWithColor(b.textColor)
 	text.Draw(screen, b.Text, &text.GoTextFace{
 		Source: getDefaultFontSource(),
