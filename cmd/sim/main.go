@@ -15,9 +15,9 @@ import (
 )
 
 type Game struct {
-	renderer  *renderer.Renderer
-	simulator *sim.Simulator
-	world     *world.World
+	renderer     *renderer.Renderer
+	simulator    *sim.Simulator
+	world        *world.World
 	InputHandler *input.InputHandler
 }
 
@@ -77,16 +77,18 @@ func main() {
 		[]*vehicle.Vehicle{v1, v2, v3},
 	)
 
-	simulator := sim.NewSimulator(world, 16*time.Millisecond) // ~60 FPS
-
+	simulator := sim.NewSimulator(world, 16*time.Millisecond)
 	inputHandler := input.NewInputHandler(world)
 
-	rend := &renderer.Renderer{World: world}
+	rend := &renderer.Renderer{
+		World:        world,
+		InputHandler: inputHandler,
+	}
 
 	game := &Game{
-		renderer:  rend,
-		simulator: simulator,
-		world:     world,
+		renderer:     rend,
+		simulator:    simulator,
+		world:        world,
 		InputHandler: inputHandler,
 	}
 

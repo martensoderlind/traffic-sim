@@ -16,6 +16,7 @@ type RoadBuildingTool struct {
 	selectedNode *road.Node
 	maxSnapDist  float64
 	minNodeDist  float64
+	roadSnapDist float64
 }
 
 func NewRoadBuildingTool(executor *commands.CommandExecutor, query *query.WorldQuery) *RoadBuildingTool {
@@ -26,6 +27,7 @@ func NewRoadBuildingTool(executor *commands.CommandExecutor, query *query.WorldQ
 		bidirectional: true,
 		maxSnapDist:   20.0,
 		minNodeDist:   30.0,
+		roadSnapDist:  15.0,
 	}
 }
 
@@ -45,6 +47,10 @@ func (t *RoadBuildingTool) GetHoverNode(mouseX, mouseY float64) *road.Node {
 	return t.query.FindNearestNode(mouseX, mouseY, t.maxSnapDist)
 }
 
+func (t *RoadBuildingTool) GetHoverRoad(mouseX, mouseY float64) (*road.Road, float64, float64) {
+	return t.query.FindNearestRoad(mouseX, mouseY, t.roadSnapDist)
+}
+
 func (t *RoadBuildingTool) Cancel() {
 	t.selectedNode = nil
 }
@@ -57,27 +63,51 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 	if hoverNode != nil {
 		clickedNode = hoverNode
 	} else {
-		if !t.query.CanPlaceNodeAt(mouseX, mouseY, t.minNodeDist) {
-			return nil
-		}
+		hoverRoad, snapX, snapY := t.GetHoverRoad(mouseX, mouseY)
 		
-		t.nodeCounter++
-		nodeID := fmt.Sprintf("n%d", t.nodeCounter)
-		
-		cmd := &commands.CreateNodeCommand{
-			X:      mouseX,
-			Y:      mouseY,
-			NodeID: nodeID,
-		}
-		
-		if err := t.executor.Execute(cmd); err != nil {
-			return err
-		}
-		
-		clickedNode = &road.Node{
-			ID: nodeID,
-			X:  mouseX,
-			Y:  mouseY,
+		if hoverRoad != nil {
+			t.nodeCounter++
+			nodeID := fmt.Sprintf("n%d", t.nodeCounter)
+			
+			cmd := &commands.SplitRoadCommand{
+				Road:   hoverRoad,
+				X:      snapX,
+				Y:      snapY,
+				NodeID: nodeID,
+			}
+			
+			if err := t.executor.Execute(cmd); err != nil {
+				return err
+			}
+			
+			clickedNode = &road.Node{
+				ID: nodeID,
+				X:  snapX,
+				Y:  snapY,
+			}
+		} else {
+			if !t.query.CanPlaceNodeAt(mouseX, mouseY, t.minNodeDist) {
+				return nil
+			}
+			
+			t.nodeCounter++
+			nodeID := fmt.Sprintf("n%d", t.nodeCounter)
+			
+			cmd := &commands.CreateNodeCommand{
+				X:      mouseX,
+				Y:      mouseY,
+				NodeID: nodeID,
+			}
+			
+			if err := t.executor.Execute(cmd); err != nil {
+				return err
+			}
+			
+			clickedNode = &road.Node{
+				ID: nodeID,
+				X:  mouseX,
+				Y:  mouseY,
+			}
 		}
 	}
 	

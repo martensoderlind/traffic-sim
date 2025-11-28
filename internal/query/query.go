@@ -52,6 +52,55 @@ func (q *WorldQuery) CanPlaceNodeAt(x, y, minDistance float64) bool {
 	return true
 }
 
+func (q *WorldQuery) FindNearestRoad(x, y, maxDistance float64) (*road.Road, float64, float64) {
+	q.world.Mu.RLock()
+	defer q.world.Mu.RUnlock()
+
+	var nearestRoad *road.Road
+	var nearestX, nearestY float64
+	minDist := maxDistance
+
+	for _, rd := range q.world.Roads {
+		px, py, dist := q.closestPointOnRoad(rd, x, y)
+		
+		if dist < minDist {
+			minDist = dist
+			nearestRoad = rd
+			nearestX = px
+			nearestY = py
+		}
+	}
+
+	return nearestRoad, nearestX, nearestY
+}
+
+func (q *WorldQuery) closestPointOnRoad(rd *road.Road, x, y float64) (float64, float64, float64) {
+	x1, y1 := rd.From.X, rd.From.Y
+	x2, y2 := rd.To.X, rd.To.Y
+	
+	dx := x2 - x1
+	dy := y2 - y1
+	
+	if dx == 0 && dy == 0 {
+		return x1, y1, math.Sqrt((x-x1)*(x-x1) + (y-y1)*(y-y1))
+	}
+	
+	t := ((x-x1)*dx + (y-y1)*dy) / (dx*dx + dy*dy)
+	
+	if t < 0 {
+		t = 0
+	} else if t > 1 {
+		t = 1
+	}
+	
+	px := x1 + t*dx
+	py := y1 + t*dy
+	
+	dist := math.Sqrt((x-px)*(x-px) + (y-py)*(y-py))
+	
+	return px, py, dist
+}
+
 func (q *WorldQuery) GetNodes() []*road.Node {
 	q.world.Mu.RLock()
 	defer q.world.Mu.RUnlock()
