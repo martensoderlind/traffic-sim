@@ -6,7 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	"traffic-sim/input"
+	"traffic-sim/internal/input"
 	"traffic-sim/internal/renderer"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/sim"
