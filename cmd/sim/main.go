@@ -23,28 +23,20 @@ func main(){
 	v1 := &vehicle.Vehicle{
 		ID:"car1",
 		Road: r1,
-		Position: 0,
+		Distance: 0,
+		Pos: vehicle.Vec2{X: r1.From.X,Y: r1.From.Y},
 		Speed: 20,
-		MaxSpeed:25,
 	}
 
 	world := sim.NewWorld([]*road.Road{r1,r2,r3,r4},[]*road.Node{n1,n2,n3},[]*vehicle.Vehicle{v1})
 	simulator := sim.NewSimulator(world, 100*time.Millisecond)
-
-	// intersections := sim.BuildIntersections([]*road.Road{r1,r2,r3,r4}, []*road.Node{n1, n2,n3})
-	// fmt.Println("Intersections:", len(intersections))
-	// for  _,ints:=range intersections{
-	// 	fmt.Println("intersection connections:",ints.ID)
-	// 	fmt.Println("intersection incoming:",ints.Incoming)
-	// 	fmt.Println("intersection outgoing:",ints.Outgoing)
-	// }
 
 	fmt.Println("starting simulation..")
 	go simulator.Start()
 
 	for range time.Tick(time.Second){
 		world.Mu.RLock()
-		fmt.Printf("%s: pos=%.2f on %s\n", v1.ID, v1.Position, v1.Road.ID)
+		fmt.Printf("%s: pos=%.2f on %s\n", v1.ID, v1.Pos, v1.Road.ID)
 		world.Mu.RUnlock()
 	}
 }

@@ -98,24 +98,33 @@ func (s *Simulator) nextRoadFor(v *vehicle.Vehicle) *road.Road {
 }
 
 func (s *Simulator) update() {
-	s.world.Mu.Lock()
-	defer s.world.Mu.Unlock()
+    s.world.Mu.Lock()
+    defer s.world.Mu.Unlock()
 
-	dt := s.tickRate.Seconds()
+    dt := s.tickRate.Seconds()
 
-	for _, v := range s.world.Vehicles {
-		newPos := v.Position + v.Speed*dt
-		if newPos >= v.Road.Length {
-			next := s.nextRoadFor(v)
-		if next != nil {
-			v.Road = next
-			v.Position = 0
-		} else {
-			v.Position = v.Road.Length
-			v.Speed = 0
-		}
-		} else {
-			v.Position = newPos
-		}
-	}
+    for _, v := range s.world.Vehicles {
+
+        newDist := v.Distance + v.Speed*dt
+
+        if newDist >= v.Road.Length {
+
+            next := s.nextRoadFor(v)
+
+            if next != nil {
+                v.Road = next
+                v.Distance = 0
+            } else {
+                v.Distance = v.Road.Length
+                v.Speed = 0
+            }
+
+        } else {
+            v.Distance = newDist
+        }
+
+        x, y := v.Road.PosAt(v.Distance)
+        v.Pos.X = x
+        v.Pos.Y = y
+    }
 }
