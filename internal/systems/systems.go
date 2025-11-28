@@ -31,31 +31,6 @@ func (sm *SystemManager) Update(w *world.World, dt float64) {
 	}
 }
 
-type MovementSystem struct{}
-
-func NewMovementSystem() *MovementSystem {
-	return &MovementSystem{}
-}
-
-func (ms *MovementSystem) Update(w *world.World, dt float64) {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
-	for _, v := range w.Vehicles {
-		newDist := v.Distance + v.Speed*dt
-
-		if newDist >= v.Road.Length {
-			v.Distance = v.Road.Length
-		} else {
-			v.Distance = newDist
-		}
-
-		x, y := v.Road.PosAt(v.Distance)
-		v.Pos.X = x
-		v.Pos.Y = y
-	}
-}
-
 type PathfindingSystem struct{}
 
 func NewPathfindingSystem() *PathfindingSystem {
