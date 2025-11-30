@@ -131,3 +131,17 @@ func (q *WorldQuery) GetRoads() []*road.Road {
 	copy(roads, q.world.Roads)
 	return roads
 }
+
+func (q *WorldQuery) GetOutgoingRoads(node *road.Node) []*road.Road {
+	q.world.Mu.RLock()
+	defer q.world.Mu.RUnlock()
+
+	intersection := q.world.IntersectionsByNode[node.ID]
+	if intersection == nil {
+		return []*road.Road{}
+	}
+
+	outgoing := make([]*road.Road, len(intersection.Outgoing))
+	copy(outgoing, intersection.Outgoing)
+	return outgoing
+}

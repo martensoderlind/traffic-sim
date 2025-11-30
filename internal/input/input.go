@@ -16,12 +16,14 @@ const (
 	ModeNormal Mode = iota
 	ModeRoadBuilding
 	ModeNodeMoving
+	ModeSpawning
 )
 
 type InputHandler struct {
 	mode           Mode
 	roadTool       *tools.RoadBuildingTool
 	moveTool       *tools.NodeMoveTool
+	spawnTool      *tools.SpawnTool
 	mouseX, mouseY int
 }
 
@@ -30,11 +32,13 @@ func NewInputHandler(w *world.World) *InputHandler {
 	query := query.NewWorldQuery(w)
 	roadTool := tools.NewRoadBuildingTool(executor, query)
 	moveTool := tools.NewNodeMoveTool(executor, query)
+	spawnTool := tools.NewSpawnTool(executor, query)
 	
 	return &InputHandler{
-		mode:     ModeNormal,
-		roadTool: roadTool,
-		moveTool: moveTool,
+		mode:      ModeNormal,
+		roadTool:  roadTool,
+		moveTool:  moveTool,
+		spawnTool: spawnTool,
 	}
 }
 
@@ -49,6 +53,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	
 	h.roadTool.Cancel()
 	h.moveTool.EndDrag()
+	h.spawnTool.Cancel()
 	h.mode = mode
 }
 
@@ -62,6 +67,10 @@ func (h *InputHandler) RoadTool() *tools.RoadBuildingTool {
 
 func (h *InputHandler) MoveTool() *tools.NodeMoveTool {
 	return h.moveTool
+}
+
+func (h *InputHandler) SpawnTool() *tools.SpawnTool {
+	return h.spawnTool
 }
 
 func (h *InputHandler) MousePos() (int, int) {
@@ -93,15 +102,29 @@ func (h *InputHandler) handleModeSwitch() {
 			h.moveTool.EndDrag()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		if h.mode == ModeNormal {
+			h.mode = ModeSpawning
+		} else {
+			h.mode = ModeNormal
+			h.spawnTool.Cancel()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
 		h.roadTool.Cancel()
 		h.moveTool.EndDrag()
+		h.spawnTool.Cancel()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
 		h.roadTool.SetBidirectional(!h.roadTool.IsBidirectional())
+	}
+
+	if h.mode == ModeSpawning && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+		h.spawnTool.CycleRoad()
 	}
 }
 
@@ -111,6 +134,8 @@ func (h *InputHandler) handleToolInput() {
 		h.handleRoadBuildingInput()
 	case ModeNodeMoving:
 		h.handleNodeMovingInput()
+	case ModeSpawning:
+		h.handleSpawningInput()
 	}
 }
 
@@ -135,5 +160,15 @@ func (h *InputHandler) handleNodeMovingInput() {
 
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		h.moveTool.EndDrag()
+	}
+}
+
+func (h *InputHandler) handleSpawningInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.spawnTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.spawnTool.Cancel()
 	}
 }
