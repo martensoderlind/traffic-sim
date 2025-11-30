@@ -29,7 +29,7 @@ func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
 		To: to,
 		MaxSpeed: maxSpeed,
 		Length: length,
-		Width: 8.0,
+		Width: 12.0,
 	}
 }
 
@@ -62,7 +62,7 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
             perpX := -dy / length
             perpY := dx / length
             
-            offset := r.Width * 0.6
+            offset := r.Width * 0.5
             
             x += perpX * offset
             y += perpY * offset

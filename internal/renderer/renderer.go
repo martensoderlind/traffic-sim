@@ -80,7 +80,7 @@ func (r *Renderer) renderSingleRoad(screen *ebiten.Image, rd *road.Road) {
 	
 	offset := 0.0
 	if rd.ReverseRoad != nil {
-		offset = rd.Width * 0.6
+		offset = rd.Width * 0.5
 	}
 	
 	halfWidth := rd.Width / 2.0
@@ -112,15 +112,6 @@ func (r *Renderer) renderSingleRoad(screen *ebiten.Image, rd *road.Road) {
 	indices := []uint16{0, 1, 2, 0, 2, 3}
 	
 	screen.DrawTriangles(vertices, indices, emptyImage(screen), nil)
-	
-	vector.StrokeLine(
-		screen,
-		float32(x1), float32(y1),
-		float32(x2), float32(y2),
-		1,
-		color.RGBA{150, 150, 150, 80},
-		false,
-	)
 }
 
 func emptyImage(screen *ebiten.Image) *ebiten.Image {
@@ -138,7 +129,7 @@ func (r *Renderer) renderNodes(screen *ebiten.Image){
 		vector.FillCircle(
 			screen,
 			x, y,
-			6,
+			8,
 			color.RGBA{100, 100, 120, 255},
 			false,
 		)
