@@ -15,6 +15,7 @@ type Toolbar struct {
 	roadBuildBtn  *Button
 	moveNodeBtn   *Button
 	normalModeBtn *Button
+	spawnBtn      *Button
 	bidirToggle   *Button
 }
 
@@ -51,6 +52,12 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeNodeMoving)
 	})
 	tb.uiManager.AddButton(tb.moveNodeBtn)
+	currentX += btnWidth + spacing
+	
+	tb.spawnBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Add Spawn (S)", func() {
+		tb.inputHandler.SetMode(input.ModeSpawning)
+	})
+	tb.uiManager.AddButton(tb.spawnBtn)
 	currentX += btnWidth + spacing
 	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
@@ -93,6 +100,16 @@ func (tb *Toolbar) updateModeIndicator() {
 		if tb.inputHandler.MoveTool().IsDragging() {
 			modeText = "Mode: Move Node (Dragging)"
 		}
+	case input.ModeSpawning:
+		modeText = "Mode: Add Spawn Point"
+		bgColor = color.RGBA{40, 80, 60, 230}
+		if tb.inputHandler.SpawnTool().GetSelectedNode() != nil {
+			if tb.inputHandler.SpawnTool().GetSelectedRoad() != nil {
+				modeText = "Mode: Add Spawn (Road Selected - Click to Confirm)"
+			} else {
+				modeText = "Mode: Add Spawn (Node Selected - Tab to Cycle)"
+			}
+		}
 	}
 	
 	tb.modeIndicator.Text = modeText
@@ -129,6 +146,12 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.moveNodeBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.moveNodeBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeSpawning {
+		tb.spawnBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.spawnBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {
