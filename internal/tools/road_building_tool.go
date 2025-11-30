@@ -136,6 +136,7 @@ func (t *RoadBuildingTool) createRoadBetween(from, to *road.Node) error {
 		From:     from,
 		To:       to,
 		MaxSpeed: 40.0,
+		Width:    8.0,
 	}
 	return t.executor.Execute(cmd)
 }

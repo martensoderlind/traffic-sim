@@ -9,6 +9,7 @@ import (
 type CreateRoadCommand struct {
 	From, To *road.Node
 	MaxSpeed float64
+	Width    float64
 }
 
 func (c *CreateRoadCommand) Execute(w *world.World) error {
@@ -17,6 +18,10 @@ func (c *CreateRoadCommand) Execute(w *world.World) error {
 
 	roadID := fmt.Sprintf("%s-%s", c.From.ID, c.To.ID)
 	newRoad := road.NewRoad(roadID, c.From, c.To, c.MaxSpeed)
+	
+	if c.Width > 0 {
+		newRoad.Width = c.Width
+	}
 
 	w.Roads = append(w.Roads, newRoad)
 

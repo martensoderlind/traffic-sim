@@ -32,7 +32,10 @@ func (c *SplitRoadCommand) Execute(w *world.World) error {
 	road2ID := fmt.Sprintf("%s-%s", splitNode.ID, c.Road.To.ID)
 
 	newRoad1 := road.NewRoad(road1ID, c.Road.From, splitNode, c.Road.MaxSpeed)
+	newRoad1.Width = c.Road.Width
+	
 	newRoad2 := road.NewRoad(road2ID, splitNode, c.Road.To, c.Road.MaxSpeed)
+	newRoad2.Width = c.Road.Width
 
 	for i, r := range w.Roads {
 		if r == c.Road {
