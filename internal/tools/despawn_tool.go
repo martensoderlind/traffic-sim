@@ -12,8 +12,7 @@ type DespawnTool struct {
 	query          *query.WorldQuery
 	maxSnapDist    float64
 	despawnCounter int
-	selectedNode   *road.Node
-	selectedRoad   *road.Road
+	roadSelector   *RoadSelector
 }
 
 func NewDespawnTool(executor *commands.CommandExecutor, query *query.WorldQuery) *DespawnTool {
@@ -22,6 +21,7 @@ func NewDespawnTool(executor *commands.CommandExecutor, query *query.WorldQuery)
 		query:          query,
 		maxSnapDist:    20.0,
 		despawnCounter: 0,
+		roadSelector:   NewRoadSelector(),
 	}
 }
 
@@ -30,11 +30,11 @@ func (t *DespawnTool) GetHoverNode(mouseX, mouseY float64) *road.Node {
 }
 
 func (t *DespawnTool) GetSelectedNode() *road.Node {
-	return t.selectedNode
+	return t.roadSelector.GetSelectedNode()
 }
 
 func (t *DespawnTool) GetSelectedRoad() *road.Road {
-	return t.selectedRoad
+	return t.roadSelector.GetSelectedRoad()
 }
 
 func (t *DespawnTool) GetIncomingRoads(node *road.Node) []*road.Road {
@@ -42,8 +42,7 @@ func (t *DespawnTool) GetIncomingRoads(node *road.Node) []*road.Road {
 }
 
 func (t *DespawnTool) Cancel() {
-	t.selectedNode = nil
-	t.selectedRoad = nil
+	t.roadSelector.Clear()
 }
 
 func (t *DespawnTool) Click(mouseX, mouseY float64) error {
@@ -53,36 +52,29 @@ func (t *DespawnTool) Click(mouseX, mouseY float64) error {
 		return nil
 	}
 
-	if t.selectedNode == nil {
-		t.selectedNode = hoverNode
+	if !t.roadSelector.HasNode() {
+		t.roadSelector.SelectNode(hoverNode)
 		return nil
 	}
 
-	if t.selectedNode == hoverNode && t.selectedRoad == nil {
+	if t.roadSelector.GetSelectedNode() == hoverNode && t.roadSelector.GetSelectedRoad() == nil {
 		incoming := t.GetIncomingRoads(hoverNode)
 		if len(incoming) == 0 {
 			t.Cancel()
 			return nil
 		}
 
-		t.selectedRoad = incoming[0]
-		
-		for i, r := range incoming {
-			if i > 0 {
-				t.selectedRoad = r
-				break
-			}
-		}
+		t.roadSelector.AutoSelectFirstRoad(incoming)
 	}
 
-	if t.selectedNode != nil && t.selectedRoad != nil {
+	if t.roadSelector.IsComplete() {
 		t.despawnCounter++
 		despawnID := fmt.Sprintf("dp%d", t.despawnCounter)
 		
 		cmd := &commands.CreateDespawnPointCommand{
 			DespawnID: despawnID,
-			Node:      t.selectedNode,
-			Road:      t.selectedRoad,
+			Node:      t.roadSelector.GetSelectedNode(),
+			Road:      t.roadSelector.GetSelectedRoad(),
 		}
 		
 		if err := t.executor.Execute(cmd); err != nil {
@@ -96,26 +88,10 @@ func (t *DespawnTool) Click(mouseX, mouseY float64) error {
 }
 
 func (t *DespawnTool) CycleRoad() {
-	if t.selectedNode == nil {
+	if !t.roadSelector.HasNode() {
 		return
 	}
 
-	incoming := t.GetIncomingRoads(t.selectedNode)
-	if len(incoming) == 0 {
-		return
-	}
-
-	if t.selectedRoad == nil {
-		t.selectedRoad = incoming[0]
-		return
-	}
-
-	for i, r := range incoming {
-		if r == t.selectedRoad {
-			t.selectedRoad = incoming[(i+1)%len(incoming)]
-			return
-		}
-	}
-
-	t.selectedRoad = incoming[0]
+	incoming := t.GetIncomingRoads(t.roadSelector.GetSelectedNode())
+	t.roadSelector.CycleRoad(incoming)
 }
