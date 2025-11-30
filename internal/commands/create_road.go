@@ -23,6 +23,14 @@ func (c *CreateRoadCommand) Execute(w *world.World) error {
 		newRoad.Width = c.Width
 	}
 
+	for _, existingRoad := range w.Roads {
+		if existingRoad.From == c.To && existingRoad.To == c.From {
+			newRoad.ReverseRoad = existingRoad
+			existingRoad.ReverseRoad = newRoad
+			break
+		}
+	}
+
 	w.Roads = append(w.Roads, newRoad)
 
 	fromIntersection := w.IntersectionsByNode[c.From.ID]

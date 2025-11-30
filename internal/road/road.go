@@ -15,6 +15,7 @@ type Road struct {
 	MaxSpeed float64
 	Length float64
 	Width float64
+	ReverseRoad *Road
 }
 
 func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
