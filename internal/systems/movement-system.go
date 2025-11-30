@@ -32,13 +32,14 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 		ms.adjustSpeed(v, targetSpeed, dt)
 		
 		newDist := v.Distance + v.Speed*dt
-		if newDist >= v.Road.Length {
-			v.Distance = v.Road.Length
-		} else {
-			v.Distance = newDist
+		
+		if newDist > v.Road.Length {
+			newDist = v.Road.Length
 		}
+		
+		v.Distance = newDist
 
-		x, y:= v.Road.PosAt(v.Distance)
+		x, y := v.Road.PosAt(v.Distance)
 		v.Pos.X = x
 		v.Pos.Y = y
 	}

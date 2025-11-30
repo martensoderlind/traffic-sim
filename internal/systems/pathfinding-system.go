@@ -24,8 +24,16 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 			if nextRoad != nil {
 				v.Road = nextRoad
 				v.Distance = 0
+				
+				x, y := v.Road.PosAt(0)
+				v.Pos.X = x
+				v.Pos.Y = y
 			} else {
 				v.Speed = 0
+				v.Distance = v.Road.Length
+				x, y := v.Road.PosAt(v.Distance)
+				v.Pos.X = x
+				v.Pos.Y = y
 			}
 		}
 	}
