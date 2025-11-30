@@ -21,10 +21,7 @@ func (c *CreateNodeCommand) Execute(w *world.World) error {
 	}
 
 	w.Nodes = append(w.Nodes, newNode)
-
-	newIntersection := road.NewIntersection(c.NodeID)
-	w.Intersections = append(w.Intersections, newIntersection)
-	w.IntersectionsByNode[c.NodeID] = newIntersection
+	w.CreateIntersection(c.NodeID)
 
 	return nil
 }

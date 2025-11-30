@@ -35,25 +35,7 @@ func (c *DeleteRoadCommand) Execute(w *world.World) error {
 		}
 	}
 
-	fromIntersection := w.IntersectionsByNode[c.Road.From.ID]
-	if fromIntersection != nil {
-		for i, r := range fromIntersection.Outgoing {
-			if r == c.Road {
-				fromIntersection.Outgoing = append(fromIntersection.Outgoing[:i], fromIntersection.Outgoing[i+1:]...)
-				break
-			}
-		}
-	}
-
-	toIntersection := w.IntersectionsByNode[c.Road.To.ID]
-	if toIntersection != nil {
-		for i, r := range toIntersection.Incoming {
-			if r == c.Road {
-				toIntersection.Incoming = append(toIntersection.Incoming[:i], toIntersection.Incoming[i+1:]...)
-				break
-			}
-		}
-	}
+	w.RemoveRoadFromIntersections(c.Road)
 
 	for i, r := range w.Roads {
 		if r == c.Road {

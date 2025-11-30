@@ -37,3 +37,59 @@ func New(roads []*road.Road, nodes []*road.Node, vehicles []*vehicle.Vehicle) *W
 
 	return w
 }
+
+func (w *World) GetIntersection(nodeID string) *road.Intersection {
+	return w.IntersectionsByNode[nodeID]
+}
+
+func (w *World) CreateIntersection(nodeID string) *road.Intersection {
+	intersection := road.NewIntersection(nodeID)
+	w.Intersections = append(w.Intersections, intersection)
+	w.IntersectionsByNode[nodeID] = intersection
+	return intersection
+}
+
+func (w *World) DeleteIntersection(nodeID string) {
+	delete(w.IntersectionsByNode, nodeID)
+	
+	for i, inter := range w.Intersections {
+		if inter.ID == nodeID {
+			w.Intersections = append(w.Intersections[:i], w.Intersections[i+1:]...)
+			break
+		}
+	}
+}
+
+func (w *World) AddRoadToIntersections(rd *road.Road) {
+	fromIntersection := w.GetIntersection(rd.From.ID)
+	if fromIntersection != nil {
+		fromIntersection.AddOutgoing(rd)
+	}
+
+	toIntersection := w.GetIntersection(rd.To.ID)
+	if toIntersection != nil {
+		toIntersection.AddIncoming(rd)
+	}
+}
+
+func (w *World) RemoveRoadFromIntersections(rd *road.Road) {
+	fromIntersection := w.GetIntersection(rd.From.ID)
+	if fromIntersection != nil {
+		for i, r := range fromIntersection.Outgoing {
+			if r == rd {
+				fromIntersection.Outgoing = append(fromIntersection.Outgoing[:i], fromIntersection.Outgoing[i+1:]...)
+				break
+			}
+		}
+	}
+
+	toIntersection := w.GetIntersection(rd.To.ID)
+	if toIntersection != nil {
+		for i, r := range toIntersection.Incoming {
+			if r == rd {
+				toIntersection.Incoming = append(toIntersection.Incoming[:i], toIntersection.Incoming[i+1:]...)
+				break
+			}
+		}
+	}
+}
