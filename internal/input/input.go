@@ -17,6 +17,7 @@ const (
 	ModeRoadBuilding
 	ModeNodeMoving
 	ModeSpawning
+	ModeDespawning
 )
 
 type InputHandler struct {
@@ -24,6 +25,7 @@ type InputHandler struct {
 	roadTool       *tools.RoadBuildingTool
 	moveTool       *tools.NodeMoveTool
 	spawnTool      *tools.SpawnTool
+	despawnTool    *tools.DespawnTool
 	mouseX, mouseY int
 }
 
@@ -33,12 +35,14 @@ func NewInputHandler(w *world.World) *InputHandler {
 	roadTool := tools.NewRoadBuildingTool(executor, query)
 	moveTool := tools.NewNodeMoveTool(executor, query)
 	spawnTool := tools.NewSpawnTool(executor, query)
+	despawnTool := tools.NewDespawnTool(executor, query)
 	
 	return &InputHandler{
-		mode:      ModeNormal,
-		roadTool:  roadTool,
-		moveTool:  moveTool,
-		spawnTool: spawnTool,
+		mode:        ModeNormal,
+		roadTool:    roadTool,
+		moveTool:    moveTool,
+		spawnTool:   spawnTool,
+		despawnTool: despawnTool,
 	}
 }
 
@@ -54,6 +58,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	h.roadTool.Cancel()
 	h.moveTool.EndDrag()
 	h.spawnTool.Cancel()
+	h.despawnTool.Cancel()
 	h.mode = mode
 }
 
@@ -71,6 +76,10 @@ func (h *InputHandler) MoveTool() *tools.NodeMoveTool {
 
 func (h *InputHandler) SpawnTool() *tools.SpawnTool {
 	return h.spawnTool
+}
+
+func (h *InputHandler) DespawnTool() *tools.DespawnTool {
+	return h.despawnTool
 }
 
 func (h *InputHandler) MousePos() (int, int) {
@@ -111,12 +120,22 @@ func (h *InputHandler) handleModeSwitch() {
 			h.spawnTool.Cancel()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		if h.mode == ModeNormal {
+			h.mode = ModeDespawning
+		} else {
+			h.mode = ModeNormal
+			h.despawnTool.Cancel()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
 		h.roadTool.Cancel()
 		h.moveTool.EndDrag()
 		h.spawnTool.Cancel()
+		h.despawnTool.Cancel()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
@@ -125,6 +144,10 @@ func (h *InputHandler) handleModeSwitch() {
 
 	if h.mode == ModeSpawning && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		h.spawnTool.CycleRoad()
+	}
+
+	if h.mode == ModeDespawning && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+		h.despawnTool.CycleRoad()
 	}
 }
 
@@ -136,6 +159,8 @@ func (h *InputHandler) handleToolInput() {
 		h.handleNodeMovingInput()
 	case ModeSpawning:
 		h.handleSpawningInput()
+	case ModeDespawning:
+		h.handleDespawningInput()
 	}
 }
 
@@ -170,5 +195,15 @@ func (h *InputHandler) handleSpawningInput() {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.spawnTool.Cancel()
+	}
+}
+
+func (h *InputHandler) handleDespawningInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.despawnTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.despawnTool.Cancel()
 	}
 }

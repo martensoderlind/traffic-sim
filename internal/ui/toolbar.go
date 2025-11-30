@@ -16,6 +16,7 @@ type Toolbar struct {
 	moveNodeBtn   *Button
 	normalModeBtn *Button
 	spawnBtn      *Button
+	despawnBtn    *Button
 	bidirToggle   *Button
 }
 
@@ -58,6 +59,12 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeSpawning)
 	})
 	tb.uiManager.AddButton(tb.spawnBtn)
+	currentX += btnWidth + spacing
+	
+	tb.despawnBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Add Despawn (D)", func() {
+		tb.inputHandler.SetMode(input.ModeDespawning)
+	})
+	tb.uiManager.AddButton(tb.despawnBtn)
 	currentX += btnWidth + spacing
 	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
@@ -110,6 +117,16 @@ func (tb *Toolbar) updateModeIndicator() {
 				modeText = "Mode: Add Spawn (Node Selected - Tab to Cycle)"
 			}
 		}
+	case input.ModeDespawning:
+		modeText = "Mode: Add Despawn Point"
+		bgColor = color.RGBA{80, 40, 40, 230}
+		if tb.inputHandler.DespawnTool().GetSelectedNode() != nil {
+			if tb.inputHandler.DespawnTool().GetSelectedRoad() != nil {
+				modeText = "Mode: Add Despawn (Road Selected - Click to Confirm)"
+			} else {
+				modeText = "Mode: Add Despawn (Node Selected - Tab to Cycle)"
+			}
+		}
 	}
 	
 	tb.modeIndicator.Text = modeText
@@ -152,6 +169,12 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.spawnBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.spawnBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeDespawning {
+		tb.despawnBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.despawnBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {

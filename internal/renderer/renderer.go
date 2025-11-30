@@ -158,6 +158,68 @@ func (r *Renderer) renderSpawnPoints(screen *ebiten.Image) {
 	}
 }
 
+func (r *Renderer) renderDespawnPoints(screen *ebiten.Image) {
+	for _, dp := range r.World.DespawnPoints {
+		if !dp.Enabled {
+			continue
+		}
+
+		x := float32(dp.Node.X)
+		y := float32(dp.Node.Y)
+
+		vector.FillCircle(
+			screen,
+			x, y,
+			10,
+			color.RGBA{255, 50, 50, 200},
+			false,
+		)
+
+		vector.StrokeCircle(
+			screen,
+			x, y,
+			10,
+			2,
+			color.RGBA{255, 100, 100, 255},
+			false,
+		)
+
+		dx := float32(dp.Road.To.X - dp.Road.From.X)
+		dy := float32(dp.Road.To.Y - dp.Road.From.Y)
+		length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+		
+		if length > 0 {
+			dx /= length
+			dy /= length
+
+			arrowLen := float32(20.0)
+			x1 := x - dx*arrowLen
+			y1 := y - dy*arrowLen
+
+			vector.StrokeLine(
+				screen,
+				x1, y1,
+				x, y,
+				3,
+				color.RGBA{255, 50, 50, 255},
+				false,
+			)
+
+			arrowSize := float32(8.0)
+			angle := float32(0.5)
+			
+			leftX := x - (dx*arrowSize*float32(math.Cos(float64(angle))) + dy*arrowSize*float32(math.Sin(float64(angle))))
+			leftY := y - (dy*arrowSize*float32(math.Cos(float64(angle))) - dx*arrowSize*float32(math.Sin(float64(angle))))
+			
+			rightX := x - (dx*arrowSize*float32(math.Cos(float64(-angle))) + dy*arrowSize*float32(math.Sin(float64(-angle))))
+			rightY := y - (dy*arrowSize*float32(math.Cos(float64(-angle))) - dx*arrowSize*float32(math.Sin(float64(-angle))))
+
+			vector.StrokeLine(screen, x, y, leftX, leftY, 3, color.RGBA{255, 50, 50, 255}, false)
+			vector.StrokeLine(screen, x, y, rightX, rightY, 3, color.RGBA{255, 50, 50, 255}, false)
+		}
+	}
+}
+
 func (r *Renderer) renderToolOverlay(screen *ebiten.Image) {
 	mode := r.InputHandler.Mode()
 	
@@ -167,6 +229,8 @@ func (r *Renderer) renderToolOverlay(screen *ebiten.Image) {
 		r.renderNodeMovingOverlay(screen)
 	} else if mode == input.ModeSpawning {
 		r.renderSpawningOverlay(screen)
+	} else if mode == input.ModeDespawning {
+		r.renderDespawningOverlay(screen)
 	}
 }
 
@@ -222,6 +286,67 @@ func (r *Renderer) renderSpawningOverlay(screen *ebiten.Image) {
 					screen,
 					x, y,
 					x2, y2,
+					4,
+					color.RGBA{255, 255, 100, 255},
+					false,
+				)
+			}
+		}
+	}
+}
+
+func (r *Renderer) renderDespawningOverlay(screen *ebiten.Image) {
+	mouseX, mouseY := r.InputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	despawnTool := r.InputHandler.DespawnTool()
+	hoverNode := despawnTool.GetHoverNode(mx, my)
+
+	if hoverNode != nil {
+		vector.StrokeCircle(
+			screen,
+			float32(hoverNode.X),
+			float32(hoverNode.Y),
+			12,
+			2,
+			color.RGBA{255, 100, 100, 255},
+			false,
+		)
+	}
+
+	selectedNode := despawnTool.GetSelectedNode()
+	if selectedNode != nil {
+		vector.StrokeCircle(
+			screen,
+			float32(selectedNode.X),
+			float32(selectedNode.Y),
+			15,
+			3,
+			color.RGBA{255, 255, 100, 255},
+			false,
+		)
+
+		selectedRoad := despawnTool.GetSelectedRoad()
+		if selectedRoad != nil {
+			dx := float32(selectedRoad.To.X - selectedRoad.From.X)
+			dy := float32(selectedRoad.To.Y - selectedRoad.From.Y)
+			length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+			
+			if length > 0 {
+				dx /= length
+				dy /= length
+
+				x := float32(selectedNode.X)
+				y := float32(selectedNode.Y)
+				arrowLen := float32(25.0)
+				x1 := x - dx*arrowLen
+				y1 := y - dy*arrowLen
+
+				vector.StrokeLine(
+					screen,
+					x1, y1,
+					x, y,
 					4,
 					color.RGBA{255, 255, 100, 255},
 					false,
@@ -370,6 +495,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	r.renderNodes(screen)
 	r.renderRoads(screen)
 	r.renderSpawnPoints(screen)
+	r.renderDespawnPoints(screen)
 	r.renderVehicles(screen)
 	r.renderToolOverlay(screen)
 	

@@ -19,6 +19,7 @@ func NewSimulator(w *world.World, tickRate time.Duration) *Simulator {
 	sm.AddSystem(systems.NewCollisionSystem())
 	sm.AddSystem(systems.NewPathfindingSystem())
 	sm.AddSystem(systems.NewMovementSystem())
+	sm.AddSystem(systems.NewDespawnSystem())
 
 	return &Simulator{
 		world:         w,

@@ -13,6 +13,7 @@ type World struct {
 	Vehicles      []*vehicle.Vehicle
 	Intersections []*road.Intersection
 	SpawnPoints   []*road.SpawnPoint
+	DespawnPoints []*road.DespawnPoint
 
 	IntersectionsByNode map[string]*road.Intersection
 
@@ -46,6 +47,7 @@ func New(roads []*road.Road, nodes []*road.Node, vehicles []*vehicle.Vehicle) *W
 		Nodes:               nodes,
 		Vehicles:            vehicles,
 		SpawnPoints:         make([]*road.SpawnPoint, 0),
+		DespawnPoints:       make([]*road.DespawnPoint, 0),
 		IntersectionsByNode: make(map[string]*road.Intersection),
 	}
 
