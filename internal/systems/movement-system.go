@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"traffic-sim/internal/road"
 	"traffic-sim/internal/vehicle"
 	"traffic-sim/internal/world"
 )
@@ -50,6 +51,10 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 		return v.Road.MaxSpeed
 	}
 	
+	if ms.hasDespawnPoint(w, v.Road) {
+		return v.Road.MaxSpeed
+	}
+	
 	intersection := w.IntersectionsByNode[v.Road.To.ID]
 	if intersection == nil || len(intersection.Outgoing) == 0 {
 		ratio := distToEnd / ms.lookAheadDist
@@ -70,6 +75,15 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	}
 	
 	return v.Road.MaxSpeed
+}
+
+func (ms *MovementSystem) hasDespawnPoint(w *world.World, rd *road.Road) bool {
+	for _, dp := range w.DespawnPoints {
+		if dp.Enabled && dp.Road == rd {
+			return true
+		}
+	}
+	return false
 }
 
 func (ms *MovementSystem) adjustSpeed(v *vehicle.Vehicle, targetSpeed, dt float64) {
