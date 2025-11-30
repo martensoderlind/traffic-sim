@@ -280,6 +280,10 @@ func (r *Renderer) renderToolOverlay(screen *ebiten.Image) {
 		r.renderSpawningOverlay(screen)
 	} else if mode == input.ModeDespawning {
 		r.renderDespawningOverlay(screen)
+	} else if mode == input.ModeRoadDeleting {
+		r.renderRoadDeletingOverlay(screen)
+	} else if mode == input.ModeNodeDeleting {
+		r.renderNodeDeletingOverlay(screen)
 	}
 }
 
@@ -402,6 +406,61 @@ func (r *Renderer) renderDespawningOverlay(screen *ebiten.Image) {
 				)
 			}
 		}
+	}
+}
+
+func (r *Renderer) renderRoadDeletingOverlay(screen *ebiten.Image) {
+	mouseX, mouseY := r.InputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	roadDeleteTool := r.InputHandler.RoadDeleteTool()
+	hoverRoad := roadDeleteTool.GetHoverRoad(mx, my)
+
+	if hoverRoad != nil {
+		x1 := float32(hoverRoad.From.X)
+		y1 := float32(hoverRoad.From.Y)
+		x2 := float32(hoverRoad.To.X)
+		y2 := float32(hoverRoad.To.Y)
+
+		vector.StrokeLine(
+			screen,
+			x1, y1,
+			x2, y2,
+			float32(hoverRoad.Width+4),
+			color.RGBA{255, 50, 50, 200},
+			false,
+		)
+	}
+}
+
+func (r *Renderer) renderNodeDeletingOverlay(screen *ebiten.Image) {
+	mouseX, mouseY := r.InputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	nodeDeleteTool := r.InputHandler.NodeDeleteTool()
+	hoverNode := nodeDeleteTool.GetHoverNode(mx, my)
+
+	if hoverNode != nil {
+		vector.StrokeCircle(
+			screen,
+			float32(hoverNode.X),
+			float32(hoverNode.Y),
+			15,
+			3,
+			color.RGBA{255, 50, 50, 255},
+			false,
+		)
+		
+		vector.FillCircle(
+			screen,
+			float32(hoverNode.X),
+			float32(hoverNode.Y),
+			12,
+			color.RGBA{255, 50, 50, 100},
+			false,
+		)
 	}
 }
 

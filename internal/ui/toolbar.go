@@ -12,12 +12,14 @@ type Toolbar struct {
 	inputHandler  *input.InputHandler
 	modeIndicator *Label
 	
-	roadBuildBtn  *Button
-	moveNodeBtn   *Button
-	normalModeBtn *Button
-	spawnBtn      *Button
-	despawnBtn    *Button
-	bidirToggle   *Button
+	roadBuildBtn    *Button
+	moveNodeBtn     *Button
+	normalModeBtn   *Button
+	spawnBtn        *Button
+	despawnBtn      *Button
+	roadDeleteBtn   *Button
+	nodeDeleteBtn   *Button
+	bidirToggle     *Button
 }
 
 func NewToolbar(inputHandler *input.InputHandler) *Toolbar {
@@ -65,6 +67,20 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeDespawning)
 	})
 	tb.uiManager.AddButton(tb.despawnBtn)
+	
+	currentX = 10.0
+	btnY += btnHeight + spacing
+	
+	tb.roadDeleteBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Delete Road (X)", func() {
+		tb.inputHandler.SetMode(input.ModeRoadDeleting)
+	})
+	tb.uiManager.AddButton(tb.roadDeleteBtn)
+	currentX += btnWidth + spacing
+	
+	tb.nodeDeleteBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Delete Node (Del)", func() {
+		tb.inputHandler.SetMode(input.ModeNodeDeleting)
+	})
+	tb.uiManager.AddButton(tb.nodeDeleteBtn)
 	currentX += btnWidth + spacing
 	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
@@ -72,7 +88,7 @@ func (tb *Toolbar) setupUI() {
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
 	
-	tb.modeIndicator = NewLabel(10, 60, "Mode: Normal")
+	tb.modeIndicator = NewLabel(10, btnY+btnHeight+spacing, "Mode: Normal")
 	tb.modeIndicator.Size = 14
 	bgColor := color.RGBA{40, 40, 50, 230}
 	tb.modeIndicator.SetBackground(bgColor)
@@ -127,6 +143,12 @@ func (tb *Toolbar) updateModeIndicator() {
 				modeText = "Mode: Add Despawn (Node Selected - Tab to Cycle)"
 			}
 		}
+	case input.ModeRoadDeleting:
+		modeText = "Mode: Delete Road (Click on road)"
+		bgColor = color.RGBA{80, 20, 20, 230}
+	case input.ModeNodeDeleting:
+		modeText = "Mode: Delete Node (Click on node - deletes all connected roads)"
+		bgColor = color.RGBA{80, 20, 20, 230}
 	}
 	
 	tb.modeIndicator.Text = modeText
@@ -175,6 +197,18 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.despawnBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.despawnBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeRoadDeleting {
+		tb.roadDeleteBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.roadDeleteBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeNodeDeleting {
+		tb.nodeDeleteBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.nodeDeleteBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {
