@@ -52,5 +52,22 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
     }
     x := r.From.X + t*(r.To.X-r.From.X)
     y := r.From.Y + t*(r.To.Y-r.From.Y)
+    
+    if r.ReverseRoad != nil {
+        dx := r.To.X - r.From.X
+        dy := r.To.Y - r.From.Y
+        length := r.Length
+        
+        if length > 0 {
+            perpX := -dy / length
+            perpY := dx / length
+            
+            offset := r.Width * 0.6
+            
+            x += perpX * offset
+            y += perpY * offset
+        }
+    }
+    
     return x, y
 }
