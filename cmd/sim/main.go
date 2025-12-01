@@ -60,7 +60,7 @@ func main() {
 		InputHandler: inputHandler,
 	}
 
-	ebiten.SetWindowSize(800, 600)
+	ebiten.SetWindowSize(1920, 1080)
 	ebiten.SetWindowTitle("Traffic Simulation")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
