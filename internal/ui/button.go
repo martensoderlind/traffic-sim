@@ -23,6 +23,11 @@ type Button struct {
 	pressColor   color.RGBA
 	textColor    color.RGBA
 	borderColor  color.RGBA
+
+	Icon       *ebiten.Image
+	IconWidth  float64
+	IconHeight float64
+
 }
 
 func NewButton(x, y, width, height float64, text string, onClick func()) *Button {
@@ -68,6 +73,13 @@ func (b *Button) Update(mouseX, mouseY int, clicked bool) {
 	}
 }
 
+func (b *Button) SetIcon(img *ebiten.Image, w, h float64) {
+	b.Icon = img
+	b.IconWidth = w
+	b.IconHeight = h
+}
+
+
 func (b *Button) Draw(screen *ebiten.Image) {
 	bgColor := b.bgColor
 	if b.pressed {
@@ -78,14 +90,14 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	
 	vector.FillRect(
 		screen,
-			float32(b.X-b.Padding),
-			float32(b.Y-b.Padding),
-			float32(b.Width+b.Padding*2),
-			float32(b.Height+b.Padding*2),
+		float32(b.X-b.Padding),
+		float32(b.Y-b.Padding),
+		float32(b.Width+b.Padding*2),
+		float32(b.Height+b.Padding*2),
 		bgColor,
 		false,
 	)
-	
+
 	vector.StrokeRect(
 		screen,
 		float32(b.X-b.Padding),
@@ -96,12 +108,33 @@ func (b *Button) Draw(screen *ebiten.Image) {
 		b.borderColor,
 		false,
 	)
-	
-	op := &text.DrawOptions{}
-	op.GeoM.Translate(b.X+b.Padding, b.Y+b.Padding)
-	op.ColorScale.ScaleWithColor(b.textColor)
+
+	cursorX := b.X + b.Padding
+	cursorY := b.Y + b.Padding
+
+if b.Icon != nil {
+    op := &ebiten.DrawImageOptions{}
+
+    innerHeight := b.Height - b.Padding*2
+    dy := b.Y + b.Padding + (innerHeight - b.IconHeight) / 2
+
+    op.GeoM.Translate(cursorX, dy)
+
+    w, h := b.Icon.Bounds().Dx(), b.Icon.Bounds().Dy()
+    op.GeoM.Scale(b.IconWidth/float64(w), b.IconHeight/float64(h))
+
+    screen.DrawImage(b.Icon, op)
+
+    cursorX += b.IconWidth + 6
+}
+
+
+	textOp := &text.DrawOptions{}
+	textOp.GeoM.Translate(cursorX, cursorY)
+	textOp.ColorScale.ScaleWithColor(b.textColor)
+
 	text.Draw(screen, b.Text, &text.GoTextFace{
 		Source: getDefaultFontSource(),
 		Size:   14,
-	}, op)
+	}, textOp)
 }
