@@ -29,11 +29,25 @@ func (cs *CollisionSystem) Update(w *world.World, dt float64) {
 		vehiclesAhead := roadVehicles[v.Road.ID]
 		
 		nearestAhead := cs.findNearestVehicleAhead(v, vehiclesAhead)
-		if nearestAhead == nil {
-			continue
+		
+		var distToVehicle float64
+		if nearestAhead != nil {
+			distToVehicle = nearestAhead.Distance - v.Distance
+		} else {
+			distToVehicle = v.Road.Length
 		}
 
-		distToVehicle := nearestAhead.Distance - v.Distance
+		if v.NextRoad != nil {
+			nextRoadVehicles := roadVehicles[v.NextRoad.ID]
+			nearestOnNext := cs.findNearestVehicleFromStart(nextRoadVehicles)
+			
+			if nearestOnNext != nil {
+				distToNextRoadVehicle := (v.Road.Length - v.Distance) + nearestOnNext.Distance
+				if nearestAhead == nil || distToNextRoadVehicle < distToVehicle {
+					distToVehicle = distToNextRoadVehicle
+				}
+			}
+		}
 		
 		if distToVehicle < cs.safeDistance {
 			v.Speed = 0
@@ -41,7 +55,10 @@ func (cs *CollisionSystem) Update(w *world.World, dt float64) {
 		}
 
 		if distToVehicle < cs.anticipationDist {
-			targetSpeed := cs.calculateSafeSpeed(distToVehicle, nearestAhead.Speed)
+			targetSpeed := cs.calculateSafeSpeed(distToVehicle, 0)
+			if nearestAhead != nil && nearestAhead.Distance-v.Distance < cs.anticipationDist {
+				targetSpeed = cs.calculateSafeSpeed(nearestAhead.Distance-v.Distance, nearestAhead.Speed)
+			}
 			cs.adjustSpeedForCollision(v, targetSpeed, dt)
 		}
 	}
@@ -72,6 +89,20 @@ func (cs *CollisionSystem) findNearestVehicleAhead(current *vehicle.Vehicle, veh
 				minDist = dist
 				nearest = v
 			}
+		}
+	}
+
+	return nearest
+}
+
+func (cs *CollisionSystem) findNearestVehicleFromStart(vehicles []*vehicle.Vehicle) *vehicle.Vehicle {
+	var nearest *vehicle.Vehicle
+	minDist := 1000000.0
+
+	for _, v := range vehicles {
+		if v.Distance < minDist {
+			minDist = v.Distance
+			nearest = v
 		}
 	}
 

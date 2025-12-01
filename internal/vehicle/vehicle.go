@@ -12,6 +12,7 @@ type Vec2 struct {
 type Vehicle struct {
 ID string
 Road *road.Road
+NextRoad *road.Road
 Distance float64
 Speed float64
 Pos Vec2

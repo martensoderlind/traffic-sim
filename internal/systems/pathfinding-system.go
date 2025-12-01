@@ -18,11 +18,14 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 	defer w.Mu.Unlock()
 
 	for _, v := range w.Vehicles {
+		if v.NextRoad == nil && v.Distance > v.Road.Length*0.5 {
+			v.NextRoad = ps.findNextRoad(w, v)
+		}
+
 		if v.Distance >= v.Road.Length && v.Speed > 0 {
-			nextRoad := ps.findNextRoad(w, v)
-			
-			if nextRoad != nil {
-				v.Road = nextRoad
+			if v.NextRoad != nil {
+				v.Road = v.NextRoad
+				v.NextRoad = nil
 				v.Distance = 0
 				
 				x, y := v.Road.PosAt(0)
