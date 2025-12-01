@@ -29,7 +29,9 @@ func (ss *SpawnSystem) Update(w *world.World, dt float64) {
 
 		sp.Timer += dt
 
-		if sp.Timer >= sp.Interval {
+		randomInterval := sp.Interval * (0.5 + rand.Float64())
+		
+		if sp.Timer >= randomInterval {
 			sp.Timer = 0.0
 
 			speed := sp.MinSpeed + rand.Float64()*(sp.MaxSpeed-sp.MinSpeed)
