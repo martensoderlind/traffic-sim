@@ -16,6 +16,8 @@ type Renderer struct {
 	World        *world.World
 	InputHandler *input.InputHandler
 	Toolbar      *ui.Toolbar
+	screenWidth  int
+	screenHeight int
 }
 
 func NewRenderer(w *world.World, inputHandler *input.InputHandler) *Renderer {
@@ -23,6 +25,8 @@ func NewRenderer(w *world.World, inputHandler *input.InputHandler) *Renderer {
 		World:        w,
 		InputHandler: inputHandler,
 		Toolbar:      ui.NewToolbar(inputHandler),
+		screenWidth:  1920,
+		screenHeight: 1080,
 	}
 }
 
@@ -602,5 +606,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 }
 
 func (r *Renderer) Layout(w, h int) (int, int) {
-	return 800, 600
+	r.screenWidth = w
+	r.screenHeight = h
+	return w, h
 }
