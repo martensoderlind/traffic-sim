@@ -20,6 +20,7 @@ type Game struct {
 	simulator    *sim.Simulator
 	world        *world.World
 	InputHandler *input.InputHandler
+	lastTime     time.Time
 }
 
 func (g *Game) Update() error {
@@ -28,7 +29,14 @@ func (g *Game) Update() error {
 	
 	g.renderer.Toolbar.Update(mouseX, mouseY, clicked)
 	g.InputHandler.Update()
-	g.simulator.UpdateOnce()
+	
+	now := time.Now()
+	if !g.lastTime.IsZero() {
+		dt := now.Sub(g.lastTime).Seconds()
+		g.simulator.UpdateOnce(dt)
+	}
+	g.lastTime = now
+	
 	return nil
 }
 
@@ -48,7 +56,7 @@ func main() {
 		[]*vehicle.Vehicle{},
 	)
 
-	simulator := sim.NewSimulator(world, 16*time.Millisecond)
+	simulator := sim.NewSimulator(world, 8*time.Millisecond)
 	inputHandler := input.NewInputHandler(world)
 
 	rend := renderer.NewRenderer(world, inputHandler)

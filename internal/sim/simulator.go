@@ -11,6 +11,7 @@ type Simulator struct {
 	world         *world.World
 	tickRate      time.Duration
 	systemManager *systems.SystemManager
+	accumulator   float64
 }
 
 func NewSimulator(w *world.World, tickRate time.Duration) *Simulator {
@@ -25,6 +26,7 @@ func NewSimulator(w *world.World, tickRate time.Duration) *Simulator {
 		world:         w,
 		tickRate:      tickRate,
 		systemManager: sm,
+		accumulator:   0.0,
 	}
 }
 
@@ -35,8 +37,14 @@ func (s *Simulator) Start() {
 	}
 }
 
-func (s *Simulator) UpdateOnce() {
-	s.update()
+func (s *Simulator) UpdateOnce(deltaTime float64) {
+	s.accumulator += deltaTime
+	fixedDt := s.tickRate.Seconds()
+	
+	for s.accumulator >= fixedDt {
+		s.systemManager.Update(s.world, fixedDt)
+		s.accumulator -= fixedDt
+	}
 }
 
 func (s *Simulator) update() {
