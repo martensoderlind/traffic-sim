@@ -14,6 +14,7 @@ type World struct {
 	Intersections []*road.Intersection
 	SpawnPoints   []*road.SpawnPoint
 	DespawnPoints []*road.DespawnPoint
+	TrafficLights []*road.TrafficLight 
 
 	IntersectionsByNode map[string]*road.Intersection
 

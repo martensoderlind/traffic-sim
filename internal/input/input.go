@@ -20,6 +20,7 @@ const (
 	ModeDespawning
 	ModeRoadDeleting
 	ModeNodeDeleting
+	ModeTrafficLight
 )
 
 type InputHandler struct {
@@ -31,6 +32,7 @@ type InputHandler struct {
 	roadDeleteTool *tools.RoadDeleteTool
 	nodeDeleteTool *tools.NodeDeleteTool
 	mouseX, mouseY int
+	trafficLightTool *tools.TrafficLightTool
 }
 
 func NewInputHandler(w *world.World) *InputHandler {
@@ -42,7 +44,8 @@ func NewInputHandler(w *world.World) *InputHandler {
 	despawnTool := tools.NewDespawnTool(executor, query)
 	roadDeleteTool := tools.NewRoadDeleteTool(executor, query)
 	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
-	
+	trafficLightTool := tools.NewTrafficLightTool(executor, query)
+
 	return &InputHandler{
 		mode:           ModeNormal,
 		roadTool:       roadTool,
@@ -51,6 +54,7 @@ func NewInputHandler(w *world.World) *InputHandler {
 		despawnTool:    despawnTool,
 		roadDeleteTool: roadDeleteTool,
 		nodeDeleteTool: nodeDeleteTool,
+		trafficLightTool: trafficLightTool,
 	}
 }
 
