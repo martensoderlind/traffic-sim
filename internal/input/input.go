@@ -9,6 +9,7 @@ import (
 	"traffic-sim/internal/commands"
 	"traffic-sim/internal/query"
 	"traffic-sim/internal/road"
+	"traffic-sim/internal/sim"
 	"traffic-sim/internal/tools"
 	"traffic-sim/internal/world"
 )
@@ -36,9 +37,10 @@ type InputHandler struct {
 	nodeDeleteTool   *tools.NodeDeleteTool
 	trafficLightTool *tools.TrafficLightTool
 	mouseX, mouseY   int
+	simulator 	     *sim.Simulator
 }
 
-func NewInputHandler(w *world.World) *InputHandler {
+func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 	executor := commands.NewCommandExecutor(w)
 	query := query.NewWorldQuery(w)
 	roadTool := tools.NewRoadBuildingTool(executor, query)
@@ -48,6 +50,7 @@ func NewInputHandler(w *world.World) *InputHandler {
 	roadDeleteTool := tools.NewRoadDeleteTool(executor, query)
 	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
 	trafficLightTool := tools.NewTrafficLightTool(executor, query)
+	simulator := s
 	
 	return &InputHandler{
 		mode:             ModeNormal,
@@ -58,6 +61,7 @@ func NewInputHandler(w *world.World) *InputHandler {
 		roadDeleteTool:   roadDeleteTool,
 		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
+		simulator:        simulator,
 	}
 }
 
@@ -216,6 +220,9 @@ func (h *InputHandler) handleModeSwitch() {
 
 	if h.mode == ModeTrafficLight && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+	if h.mode == ModeNormal && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		h.simulator.TogglePause()
 	}
 }
 

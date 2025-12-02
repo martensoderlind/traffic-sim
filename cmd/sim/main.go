@@ -50,7 +50,7 @@ func main() {
 	
 	world := world.New()
 	simulator := sim.NewSimulator(world, 8*time.Millisecond)
-	inputHandler := input.NewInputHandler(world)
+	inputHandler := input.NewInputHandler(world, simulator)
 
 	rend := renderer.NewRenderer(world, inputHandler)
 
