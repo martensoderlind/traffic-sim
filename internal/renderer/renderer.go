@@ -302,6 +302,8 @@ func (r *Renderer) renderToolOverlay(screen *ebiten.Image) {
 		r.renderRoadDeletingOverlay(screen)
 	} else if mode == input.ModeNodeDeleting {
 		r.renderNodeDeletingOverlay(screen)
+	} else if mode == input.ModeTrafficLight {
+    r.renderTrafficLightOverlay(screen)
 	}
 }
 
@@ -612,6 +614,124 @@ func (r *Renderer) renderRoadBuildingOverlay(screen *ebiten.Image) {
 	}
 }
 
+func (r *Renderer) renderTrafficLights(screen *ebiten.Image) {
+	for _, light := range r.World.TrafficLights {
+		if !light.Enabled {
+			continue
+		}
+
+		// x := float32(light.Intersection.ID)
+		// y := float32(light.Intersection.ID)
+		
+		node := r.findNodeByID(light.Intersection.ID)
+		if node == nil {
+			continue
+		}
+		
+		x := float32(node.X)
+		y := float32(node.Y)
+
+		offset := float32(15.0)
+		
+		var lightColor color.RGBA
+		switch light.State {
+		case road.LightRed:
+			lightColor = color.RGBA{255, 50, 50, 255}
+		case road.LightYellow:
+			lightColor = color.RGBA{255, 255, 50, 255}
+		case road.LightGreen:
+			lightColor = color.RGBA{50, 255, 50, 255}
+		}
+
+		vector.FillCircle(
+			screen,
+			x+offset, y-offset,
+			8,
+			lightColor,
+			false,
+		)
+
+		vector.StrokeCircle(
+			screen,
+			x+offset, y-offset,
+			8,
+			2,
+			color.RGBA{40, 40, 40, 255},
+			false,
+		)
+	}
+}
+
+func (r *Renderer) findNodeByID(id string) *road.Node {
+	for _, node := range r.World.Nodes {
+		if node.ID == id {
+			return node
+		}
+	}
+	return nil
+}
+
+func (r *Renderer) renderTrafficLightOverlay(screen *ebiten.Image) {
+	mouseX, mouseY := r.InputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	tlTool := r.InputHandler.TrafficLightTool()
+	hoverNode := tlTool.GetHoverNode(mx, my)
+
+	if hoverNode != nil {
+		vector.StrokeCircle(
+			screen,
+			float32(hoverNode.X),
+			float32(hoverNode.Y),
+			12,
+			2,
+			color.RGBA{255, 255, 100, 255},
+			false,
+		)
+	}
+
+	selectedNode := tlTool.GetSelectedNode()
+	if selectedNode != nil {
+		vector.StrokeCircle(
+			screen,
+			float32(selectedNode.X),
+			float32(selectedNode.Y),
+			15,
+			3,
+			color.RGBA{255, 255, 100, 255},
+			false,
+		)
+
+		selectedRoad := tlTool.GetSelectedRoad()
+		if selectedRoad != nil {
+			dx := float32(selectedRoad.To.X - selectedRoad.From.X)
+			dy := float32(selectedRoad.To.Y - selectedRoad.From.Y)
+			length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+			
+			if length > 0 {
+				dx /= length
+				dy /= length
+
+				x := float32(selectedNode.X)
+				y := float32(selectedNode.Y)
+				arrowLen := float32(25.0)
+				x1 := x - dx*arrowLen
+				y1 := y - dy*arrowLen
+
+				vector.StrokeLine(
+					screen,
+					x1, y1,
+					x, y,
+					4,
+					color.RGBA{255, 255, 100, 255},
+					false,
+				)
+			}
+		}
+	}
+}
+
 func (r *Renderer) Draw(screen *ebiten.Image) {
 	r.World.Mu.RLock()
 	defer r.World.Mu.RUnlock()
@@ -624,7 +744,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 	r.renderDespawnPoints(screen)
 	r.renderVehicles(screen)
 	r.renderToolOverlay(screen)
-	
+	r.renderTrafficLights(screen)
 	r.Toolbar.Draw(screen)
 }
 
