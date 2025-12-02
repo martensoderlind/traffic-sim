@@ -24,13 +24,12 @@ func (tls *TrafficLightSystem) Update(w *world.World, dt float64) {
 
 func (tls *TrafficLightSystem) enforceTrafficRules(w *world.World) {
 	lightsByRoad := tls.buildLightsByRoadMap(w)
-
 	for _, v := range w.Vehicles {
 		if v.NextRoad == nil {
 			continue
 		}
-
-		light := lightsByRoad[v.NextRoad.ID]
+		
+		light := lightsByRoad[v.Road.ID]
 		if light == nil {
 			continue
 		}
@@ -43,10 +42,10 @@ func (tls *TrafficLightSystem) enforceTrafficRules(w *world.World) {
 			if distToEnd > 5.0 {
 				slowdownRatio := distToEnd / stopDist
 				v.Speed *= slowdownRatio
-			} else {
-				v.Speed = 0
-			}
-		} else if light.ShouldSlow() && distToEnd < stopDist {
+				} else {
+					v.Speed = 0
+				}
+				} else if light.ShouldSlow() && distToEnd < stopDist {
 			v.Speed *= 0.5
 		}
 	}
