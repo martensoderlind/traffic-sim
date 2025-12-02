@@ -58,10 +58,6 @@ func (mr *MarkerRenderer) RenderTrafficLights(screen *ebiten.Image, trafficLight
 			continue
 		}
 
-		x := float32(node.X)
-		y := float32(node.Y)
-		offset := float32(15.0)
-
 		var lightColor color.RGBA
 		switch light.State {
 		case road.LightRed:
@@ -72,8 +68,35 @@ func (mr *MarkerRenderer) RenderTrafficLights(screen *ebiten.Image, trafficLight
 			lightColor = color.RGBA{50, 255, 50, 255}
 		}
 
-		vector.FillCircle(screen, x+offset, y-offset, 8, lightColor, false)
-		vector.StrokeCircle(screen, x+offset, y-offset, 8, 2, color.RGBA{40, 40, 40, 255}, false)
+		for _, rd := range light.ControlledRoads {
+			dx := rd.To.X - rd.From.X
+			dy := rd.To.Y - rd.From.Y
+			length := math.Sqrt(dx*dx + dy*dy)
+
+			if length == 0 {
+				continue
+			}
+
+			dx /= length
+			dy /= length
+
+			perpX := -dy
+			perpY := dx
+
+			distFromNode := 30.0
+			offset := 12.0
+
+			x := node.X - dx*distFromNode + perpX*offset
+			y := node.Y - dy*distFromNode + perpY*offset
+
+			vector.FillCircle(screen, float32(x), float32(y), 6, lightColor, false)
+			vector.StrokeCircle(screen, float32(x), float32(y), 6, 2, color.RGBA{40, 40, 40, 255}, false)
+
+			vector.FillRect(screen, float32(x-8), float32(y-10), 16, 20, color.RGBA{30, 30, 35, 255}, false)
+			vector.StrokeRect(screen, float32(x-8), float32(y-10), 16, 20, 1, color.RGBA{40, 40, 40, 255}, false)
+			
+			vector.FillCircle(screen, float32(x), float32(y), 5, lightColor, false)
+		}
 	}
 }
 
