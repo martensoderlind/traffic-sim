@@ -20,7 +20,16 @@ func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
 		return nil
 	}
 
-	light := road.NewTrafficLight(c.LightID, intersection)
+	existingLights := 0
+	for _, existingLight := range w.TrafficLights {
+		if existingLight.Intersection.ID == intersection.ID {
+			existingLights++
+		}
+	}
+
+	startGreen := existingLights%2 == 0
+
+	light := road.NewTrafficLight(c.LightID, intersection, startGreen)
 	
 	for _, rd := range c.Roads {
 		light.AddControlledRoad(rd)

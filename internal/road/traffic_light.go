@@ -20,15 +20,19 @@ type TrafficLight struct {
 	RedTime      float64
 	Enabled      bool
 }
-
-func NewTrafficLight(id string, intersection *Intersection) *TrafficLight {
+func NewTrafficLight(id string, intersection *Intersection, startGreen bool) *TrafficLight {
+	initialState := LightRed
+	if startGreen {
+		initialState = LightGreen
+	}
+	
 	return &TrafficLight{
 		ID:           id,
 		Intersection: intersection,
 		ControlledRoads: make([]*Road, 0),
-		State:        LightRed,
+		State:        initialState,
 		Timer:        0.0,
-		GreenTime:    10.0,
+		GreenTime:    8.0,
 		YellowTime:   2.0,
 		RedTime:      8.0,
 		Enabled:      true,
