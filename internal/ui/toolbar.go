@@ -37,7 +37,7 @@ func (tb *Toolbar) setupUI() {
 	btnY := 10.0
 	btnWidth := 120.0
 	btnHeight := 35.0
-	spacing := 10.0
+	spacing := 20.0
 	currentX := 10.0
 	
 	iconImg, _, _ := ebitenutil.NewImageFromFile("image/icons/point.png")
