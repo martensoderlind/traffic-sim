@@ -9,9 +9,7 @@ import (
 
 	"traffic-sim/internal/input"
 	"traffic-sim/internal/renderer"
-	"traffic-sim/internal/road"
 	"traffic-sim/internal/sim"
-	"traffic-sim/internal/vehicle"
 	"traffic-sim/internal/world"
 )
 
@@ -50,12 +48,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	
-	world := world.New(
-		[]*road.Road{},      
-		[]*road.Node{},      
-		[]*vehicle.Vehicle{},
-	)
-
+	world := world.New()
 	simulator := sim.NewSimulator(world, 8*time.Millisecond)
 	inputHandler := input.NewInputHandler(world)
 

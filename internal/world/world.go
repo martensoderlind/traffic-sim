@@ -21,20 +21,20 @@ type World struct {
 	Mu sync.RWMutex
 }
 
-func New(roads []*road.Road, nodes []*road.Node, vehicles []*vehicle.Vehicle) *World {
+func New() *World {
 	w := &World{
-		Roads:               roads,
-		Nodes:               nodes,
-		Vehicles:            vehicles,
+		Roads:               make([]*road.Road,0),      
+		Nodes:               make([]*road.Node,0),    
+		Vehicles:            make([]*vehicle.Vehicle,0),
 		SpawnPoints:         make([]*road.SpawnPoint, 0),
 		DespawnPoints:       make([]*road.DespawnPoint, 0),
 		IntersectionsByNode: make(map[string]*road.Intersection),
 	}
 
-	w.Intersections = road.BuildIntersections(roads, nodes)
-	for _, i := range w.Intersections {
-		w.IntersectionsByNode[i.ID] = i
-	}
+	// w.Intersections = road.BuildIntersections(roads, nodes)
+	// for _, i := range w.Intersections {
+	// 	w.IntersectionsByNode[i.ID] = i
+	// }
 
 	return w
 }
