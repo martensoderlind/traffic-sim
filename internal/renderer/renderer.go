@@ -760,16 +760,13 @@ func (r *Renderer) renderTrafficLights(screen *ebiten.Image) {
 				continue
 			}
 			
-			dx /= length
-			dy /= length
-			
-			perpX := -dy
-			perpY := dx
+			perpX:= dx/length
+			perpY:= dy/ length
 			
 			offset := float32(15.0 + float32(i)*8.0)
 			
-			lightX := x + perpX*offset
-			lightY := y + perpY*offset
+			lightX := x - perpX*offset
+			lightY := y - perpY*offset
 
 			vector.FillCircle(
 				screen,
@@ -785,21 +782,6 @@ func (r *Renderer) renderTrafficLights(screen *ebiten.Image) {
 				6,
 				1,
 				color.RGBA{40, 40, 40, 255},
-				false,
-			)
-			
-			arrowLen := float32(12.0)
-			arrowX := lightX - dx*arrowLen*0.5
-			arrowY := lightY - dy*arrowLen*0.5
-			
-			vector.StrokeLine(
-				screen,
-				arrowX + dx*arrowLen,
-				arrowY + dy*arrowLen,
-				arrowX,
-				arrowY,
-				1,
-				color.RGBA{100, 100, 100, 200},
 				false,
 			)
 		}
