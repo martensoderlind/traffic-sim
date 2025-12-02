@@ -26,7 +26,7 @@ func NewTrafficLightTool(executor *commands.CommandExecutor, query *query.WorldQ
 		lightCounter:   0,
 		selectedRoads:  make([]*road.Road, 0),
 		availableRoads: make([]*road.Road, 0),
-		roadSelector: NewRoadSelector(),
+		roadSelector:   NewRoadSelector(),
 	}
 }
 

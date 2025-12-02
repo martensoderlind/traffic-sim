@@ -217,10 +217,34 @@ func (or *OverlayRenderer) renderTrafficLightOverlay(screen *ebiten.Image, input
 	if selectedNode != nil {
 		vector.StrokeCircle(screen, float32(selectedNode.X), float32(selectedNode.Y), 15, 3, color.RGBA{255, 255, 100, 255}, false)
 
-		selectedRoad := tlTool.GetSelectedRoad()
-		if selectedRoad != nil {
-			dx := float32(selectedRoad.To.X - selectedRoad.From.X)
-			dy := float32(selectedRoad.To.Y - selectedRoad.From.Y)
+		availableRoads := tlTool.GetAvailableRoads()
+		selectedRoads := tlTool.GetSelectedRoads()
+
+		for _, rd := range availableRoads {
+			isSelected := false
+			for _, selRd := range selectedRoads {
+				if selRd == rd {
+					isSelected = true
+					break
+				}
+			}
+
+			roadColor := color.RGBA{100, 100, 120, 150}
+			arrowColor := color.RGBA{150, 150, 170, 255}
+			if isSelected {
+				roadColor = color.RGBA{100, 255, 100, 200}
+				arrowColor = color.RGBA{100, 255, 100, 255}
+			}
+
+			x1 := float32(rd.From.X)
+			y1 := float32(rd.From.Y)
+			x2 := float32(rd.To.X)
+			y2 := float32(rd.To.Y)
+
+			vector.StrokeLine(screen, x1, y1, x2, y2, float32(rd.Width+2), roadColor, false)
+
+			dx := float32(rd.To.X - rd.From.X)
+			dy := float32(rd.To.Y - rd.From.Y)
 			length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
 			
 			if length > 0 {
@@ -233,7 +257,7 @@ func (or *OverlayRenderer) renderTrafficLightOverlay(screen *ebiten.Image, input
 				x1 := x - dx*arrowLen
 				y1 := y - dy*arrowLen
 
-				vector.StrokeLine(screen, x1, y1, x, y, 4, color.RGBA{255, 255, 100, 255}, false)
+				vector.StrokeLine(screen, x1, y1, x, y, 4, arrowColor, false)
 			}
 		}
 	}
