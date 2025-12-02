@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"image/color"
 	"traffic-sim/internal/input"
 
@@ -157,13 +158,14 @@ func (tb *Toolbar) updateModeIndicator() {
 		modeText = "Mode: Delete Node (Click on node - deletes all connected roads)"
 		bgColor = color.RGBA{80, 20, 20, 230}
 	case input.ModeTrafficLight:
-		modeText = "Mode: Add Traffic Light"
+		modeText = "Mode: Traffic Light - Click node, then click roads (Space to confirm)"
 		bgColor = color.RGBA{80, 80, 20, 230}
 		if tb.inputHandler.TrafficLightTool().GetSelectedNode() != nil {
-			if tb.inputHandler.TrafficLightTool().GetSelectedRoad() != nil {
-				modeText = "Mode: Traffic Light (Road Selected - Click to Confirm)"
+			selectedRoads := tb.inputHandler.TrafficLightTool().GetSelectedRoads()
+			if len(selectedRoads) > 0 {
+				modeText = fmt.Sprintf("Mode: Traffic Light (%d roads selected - Space to confirm)", len(selectedRoads))
 			} else {
-				modeText = "Mode: Traffic Light (Node Selected - Tab to Cycle)"
+				modeText = "Mode: Traffic Light (Node Selected - Click roads to control)"
 			}
 		}
 	}

@@ -8,7 +8,7 @@ import (
 type CreateTrafficLightCommand struct {
 	LightID string
 	Node    *road.Node
-	Road    *road.Road
+	Roads   []*road.Road
 }
 
 func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
@@ -21,7 +21,10 @@ func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
 	}
 
 	light := road.NewTrafficLight(c.LightID, intersection)
-	light.AddControlledRoad(c.Road)
+	
+	for _, rd := range c.Roads {
+		light.AddControlledRoad(rd)
+	}
 
 	w.TrafficLights = append(w.TrafficLights, light)
 

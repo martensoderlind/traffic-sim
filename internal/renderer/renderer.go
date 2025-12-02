@@ -614,54 +614,6 @@ func (r *Renderer) renderRoadBuildingOverlay(screen *ebiten.Image) {
 	}
 }
 
-func (r *Renderer) renderTrafficLights(screen *ebiten.Image) {
-	for _, light := range r.World.TrafficLights {
-		if !light.Enabled {
-			continue
-		}
-
-		// x := float32(light.Intersection.ID)
-		// y := float32(light.Intersection.ID)
-		
-		node := r.findNodeByID(light.Intersection.ID)
-		if node == nil {
-			continue
-		}
-		
-		x := float32(node.X)
-		y := float32(node.Y)
-
-		offset := float32(15.0)
-		
-		var lightColor color.RGBA
-		switch light.State {
-		case road.LightRed:
-			lightColor = color.RGBA{255, 50, 50, 255}
-		case road.LightYellow:
-			lightColor = color.RGBA{255, 255, 50, 255}
-		case road.LightGreen:
-			lightColor = color.RGBA{50, 255, 50, 255}
-		}
-
-		vector.FillCircle(
-			screen,
-			x+offset, y-offset,
-			8,
-			lightColor,
-			false,
-		)
-
-		vector.StrokeCircle(
-			screen,
-			x+offset, y-offset,
-			8,
-			2,
-			color.RGBA{40, 40, 40, 255},
-			false,
-		)
-	}
-}
-
 func (r *Renderer) findNodeByID(id string) *road.Node {
 	for _, node := range r.World.Nodes {
 		if node.ID == id {
@@ -679,7 +631,7 @@ func (r *Renderer) renderTrafficLightOverlay(screen *ebiten.Image) {
 	tlTool := r.InputHandler.TrafficLightTool()
 	hoverNode := tlTool.GetHoverNode(mx, my)
 
-	if hoverNode != nil {
+	if hoverNode != nil && tlTool.GetSelectedNode() == nil {
 		vector.StrokeCircle(
 			screen,
 			float32(hoverNode.X),
@@ -703,10 +655,20 @@ func (r *Renderer) renderTrafficLightOverlay(screen *ebiten.Image) {
 			false,
 		)
 
-		selectedRoad := tlTool.GetSelectedRoad()
-		if selectedRoad != nil {
-			dx := float32(selectedRoad.To.X - selectedRoad.From.X)
-			dy := float32(selectedRoad.To.Y - selectedRoad.From.Y)
+		availableRoads := tlTool.GetAvailableRoads()
+		selectedRoads := tlTool.GetSelectedRoads()
+
+		for _, rd := range availableRoads {
+			isSelected := false
+			for _, selRd := range selectedRoads {
+				if selRd == rd {
+					isSelected = true
+					break
+				}
+			}
+
+			dx := float32(rd.To.X - rd.From.X)
+			dy := float32(rd.To.Y - rd.From.Y)
 			length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
 			
 			if length > 0 {
@@ -719,15 +681,127 @@ func (r *Renderer) renderTrafficLightOverlay(screen *ebiten.Image) {
 				x1 := x - dx*arrowLen
 				y1 := y - dy*arrowLen
 
+				lineColor := color.RGBA{150, 150, 150, 200}
+				lineWidth := float32(2)
+				
+				if isSelected {
+					lineColor = color.RGBA{100, 255, 100, 255}
+					lineWidth = 4
+				}
+
 				vector.StrokeLine(
 					screen,
 					x1, y1,
 					x, y,
-					4,
-					color.RGBA{255, 255, 100, 255},
+					lineWidth,
+					lineColor,
 					false,
 				)
+
+				if isSelected {
+					arrowSize := float32(8.0)
+					angle := float32(0.5)
+					
+					leftX := x - (dx*arrowSize*float32(math.Cos(float64(angle))) + dy*arrowSize*float32(math.Sin(float64(angle))))
+					leftY := y - (dy*arrowSize*float32(math.Cos(float64(angle))) - dx*arrowSize*float32(math.Sin(float64(angle))))
+					
+					rightX := x - (dx*arrowSize*float32(math.Cos(float64(-angle))) + dy*arrowSize*float32(math.Sin(float64(-angle))))
+					rightY := y - (dy*arrowSize*float32(math.Cos(float64(-angle))) - dx*arrowSize*float32(math.Sin(float64(-angle))))
+
+					vector.StrokeLine(screen, x, y, leftX, leftY, 3, lineColor, false)
+					vector.StrokeLine(screen, x, y, rightX, rightY, 3, lineColor, false)
+				}
+
+				midX := x - dx*arrowLen*0.5
+				midY := y - dy*arrowLen*0.5
+				
+				circleColor := color.RGBA{200, 200, 200, 150}
+				if isSelected {
+					circleColor = color.RGBA{100, 255, 100, 200}
+				}
+				
+				vector.FillCircle(screen, midX, midY, 6, circleColor, false)
+				vector.StrokeCircle(screen, midX, midY, 6, 2, lineColor, false)
 			}
+		}
+	}
+}
+
+func (r *Renderer) renderTrafficLights(screen *ebiten.Image) {
+	for _, light := range r.World.TrafficLights {
+		if !light.Enabled {
+			continue
+		}
+		
+		node := r.findNodeByID(light.Intersection.ID)
+		if node == nil {
+			continue
+		}
+		
+		x := float32(node.X)
+		y := float32(node.Y)
+		
+		var lightColor color.RGBA
+		switch light.State {
+		case road.LightRed:
+			lightColor = color.RGBA{255, 50, 50, 255}
+		case road.LightYellow:
+			lightColor = color.RGBA{255, 255, 50, 255}
+		case road.LightGreen:
+			lightColor = color.RGBA{50, 255, 50, 255}
+		}
+
+		for i, controlledRoad := range light.ControlledRoads {
+			dx := float32(controlledRoad.To.X - controlledRoad.From.X)
+			dy := float32(controlledRoad.To.Y - controlledRoad.From.Y)
+			length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+			
+			if length == 0 {
+				continue
+			}
+			
+			dx /= length
+			dy /= length
+			
+			perpX := -dy
+			perpY := dx
+			
+			offset := float32(15.0 + float32(i)*8.0)
+			
+			lightX := x + perpX*offset
+			lightY := y + perpY*offset
+
+			vector.FillCircle(
+				screen,
+				lightX, lightY,
+				6,
+				lightColor,
+				false,
+			)
+
+			vector.StrokeCircle(
+				screen,
+				lightX, lightY,
+				6,
+				1,
+				color.RGBA{40, 40, 40, 255},
+				false,
+			)
+			
+			arrowLen := float32(12.0)
+			arrowX := lightX - dx*arrowLen*0.5
+			arrowY := lightY - dy*arrowLen*0.5
+			
+			vector.StrokeLine(
+				screen,
+				arrowX + dx*arrowLen,
+				arrowY + dy*arrowLen,
+				arrowX,
+				arrowY,
+				1,
+				color.RGBA{100, 100, 100, 200},
+				false,
+			)
 		}
 	}
 }

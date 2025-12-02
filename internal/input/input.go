@@ -1,11 +1,14 @@
 package input
 
 import (
+	"math"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"traffic-sim/internal/commands"
 	"traffic-sim/internal/query"
+	"traffic-sim/internal/road"
 	"traffic-sim/internal/tools"
 	"traffic-sim/internal/world"
 )
@@ -210,6 +213,10 @@ func (h *InputHandler) handleModeSwitch() {
 	if h.mode == ModeTrafficLight && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		h.trafficLightTool.CycleRoad()
 	}
+
+	if h.mode == ModeTrafficLight && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
 }
 
 func (h *InputHandler) handleToolInput() {
@@ -289,10 +296,51 @@ func (h *InputHandler) handleNodeDeletingInput() {
 
 func (h *InputHandler) handleTrafficLightInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
+		mouseX := float64(h.mouseX)
+		mouseY := float64(h.mouseY)
+		
+		node := h.trafficLightTool.GetSelectedNode()
+		if node != nil {
+			for _, road := range h.trafficLightTool.GetAvailableRoads() {
+				if h.isMouseNearRoad(mouseX, mouseY, road) {
+					h.trafficLightTool.ToggleRoad(road)
+					return
+				}
+			}
+		}
+		
+		h.trafficLightTool.Click(mouseX, mouseY)
 	}
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.trafficLightTool.Cancel()
 	}
+}
+
+func (h *InputHandler) isMouseNearRoad(mouseX, mouseY float64, rd *road.Road) bool {
+	x1, y1 := rd.From.X, rd.From.Y
+	x2, y2 := rd.To.X, rd.To.Y
+	
+	dx := x2 - x1
+	dy := y2 - y1
+	
+	if dx == 0 && dy == 0 {
+		dist := math.Sqrt((mouseX-x1)*(mouseX-x1) + (mouseY-y1)*(mouseY-y1))
+		return dist < 15.0
+	}
+	
+	t := ((mouseX-x1)*dx + (mouseY-y1)*dy) / (dx*dx + dy*dy)
+	
+	if t < 0 {
+		t = 0
+	} else if t > 1 {
+		t = 1
+	}
+	
+	px := x1 + t*dx
+	py := y1 + t*dy
+	
+	dist := math.Sqrt((mouseX-px)*(mouseX-px) + (mouseY-py)*(mouseY-py))
+	
+	return dist < 15.0
 }

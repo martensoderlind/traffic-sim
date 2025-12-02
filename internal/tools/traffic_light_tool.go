@@ -12,16 +12,19 @@ type TrafficLightTool struct {
 	query          *query.WorldQuery
 	maxSnapDist    float64
 	lightCounter   int
-	roadSelector   *RoadSelector
+	selectedNode   *road.Node
+	selectedRoads  []*road.Road
+	availableRoads []*road.Road
 }
 
 func NewTrafficLightTool(executor *commands.CommandExecutor, query *query.WorldQuery) *TrafficLightTool {
 	return &TrafficLightTool{
-		executor:     executor,
-		query:        query,
-		maxSnapDist:  20.0,
-		lightCounter: 0,
-		roadSelector: NewRoadSelector(),
+		executor:       executor,
+		query:          query,
+		maxSnapDist:    20.0,
+		lightCounter:   0,
+		selectedRoads:  make([]*road.Road, 0),
+		availableRoads: make([]*road.Road, 0),
 	}
 }
 
@@ -30,11 +33,15 @@ func (t *TrafficLightTool) GetHoverNode(mouseX, mouseY float64) *road.Node {
 }
 
 func (t *TrafficLightTool) GetSelectedNode() *road.Node {
-	return t.roadSelector.GetSelectedNode()
+	return t.selectedNode
 }
 
-func (t *TrafficLightTool) GetSelectedRoad() *road.Road {
-	return t.roadSelector.GetSelectedRoad()
+func (t *TrafficLightTool) GetSelectedRoads() []*road.Road {
+	return t.selectedRoads
+}
+
+func (t *TrafficLightTool) GetAvailableRoads() []*road.Road {
+	return t.availableRoads
 }
 
 func (t *TrafficLightTool) GetIncomingRoads(node *road.Node) []*road.Road {
@@ -42,7 +49,9 @@ func (t *TrafficLightTool) GetIncomingRoads(node *road.Node) []*road.Road {
 }
 
 func (t *TrafficLightTool) Cancel() {
-	t.roadSelector.Clear()
+	t.selectedNode = nil
+	t.selectedRoads = make([]*road.Road, 0)
+	t.availableRoads = make([]*road.Road, 0)
 }
 
 func (t *TrafficLightTool) Click(mouseX, mouseY float64) error {
@@ -52,29 +61,29 @@ func (t *TrafficLightTool) Click(mouseX, mouseY float64) error {
 		return nil
 	}
 
-	if !t.roadSelector.HasNode() {
-		t.roadSelector.SelectNode(hoverNode)
+	if t.selectedNode == nil {
+		t.selectedNode = hoverNode
+		t.availableRoads = t.GetIncomingRoads(hoverNode)
+		if len(t.availableRoads) == 0 {
+			t.Cancel()
+			return nil
+		}
 		return nil
 	}
 
-	if t.roadSelector.GetSelectedNode() == hoverNode && t.roadSelector.GetSelectedRoad() == nil {
-		incoming := t.GetIncomingRoads(hoverNode)
-		if len(incoming) == 0 {
+	if t.selectedNode == hoverNode {
+		if len(t.selectedRoads) == 0 {
 			t.Cancel()
 			return nil
 		}
 
-		t.roadSelector.AutoSelectFirstRoad(incoming)
-	}
-
-	if t.roadSelector.IsComplete() {
 		t.lightCounter++
 		lightID := fmt.Sprintf("tl%d", t.lightCounter)
 
 		cmd := &commands.CreateTrafficLightCommand{
 			LightID: lightID,
-			Node:    t.roadSelector.GetSelectedNode(),
-			Road:    t.roadSelector.GetSelectedRoad(),
+			Node:    t.selectedNode,
+			Roads:   t.selectedRoads,
 		}
 
 		if err := t.executor.Execute(cmd); err != nil {
@@ -87,11 +96,52 @@ func (t *TrafficLightTool) Click(mouseX, mouseY float64) error {
 	return nil
 }
 
+func (t *TrafficLightTool) ToggleRoad(road *road.Road) {
+	for i, r := range t.selectedRoads {
+		if r == road {
+			t.selectedRoads = append(t.selectedRoads[:i], t.selectedRoads[i+1:]...)
+			return
+		}
+	}
+	t.selectedRoads = append(t.selectedRoads, road)
+}
+
+func (t *TrafficLightTool) IsRoadSelected(road *road.Road) bool {
+	for _, r := range t.selectedRoads {
+		if r == road {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *TrafficLightTool) CycleRoad() {
-	if !t.roadSelector.HasNode() {
+	if t.selectedNode == nil || len(t.availableRoads) == 0 {
 		return
 	}
 
-	incoming := t.GetIncomingRoads(t.roadSelector.GetSelectedNode())
-	t.roadSelector.CycleRoad(incoming)
+	if len(t.selectedRoads) == 0 {
+		t.selectedRoads = append(t.selectedRoads, t.availableRoads[0])
+		return
+	}
+
+	lastRoad := t.selectedRoads[len(t.selectedRoads)-1]
+	
+	for i, r := range t.availableRoads {
+		if r == lastRoad {
+			nextIdx := (i + 1) % len(t.availableRoads)
+			nextRoad := t.availableRoads[nextIdx]
+			if !t.IsRoadSelected(nextRoad) {
+				t.selectedRoads = append(t.selectedRoads, nextRoad)
+			}
+			return
+		}
+	}
+	
+	for _, r := range t.availableRoads {
+		if !t.IsRoadSelected(r) {
+			t.selectedRoads = append(t.selectedRoads, r)
+			return
+		}
+	}
 }
