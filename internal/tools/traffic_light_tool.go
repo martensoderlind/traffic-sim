@@ -15,6 +15,7 @@ type TrafficLightTool struct {
 	selectedNode   *road.Node
 	selectedRoads  []*road.Road
 	availableRoads []*road.Road
+	roadSelector   *RoadSelector
 }
 
 func NewTrafficLightTool(executor *commands.CommandExecutor, query *query.WorldQuery) *TrafficLightTool {
@@ -25,6 +26,7 @@ func NewTrafficLightTool(executor *commands.CommandExecutor, query *query.WorldQ
 		lightCounter:   0,
 		selectedRoads:  make([]*road.Road, 0),
 		availableRoads: make([]*road.Road, 0),
+		roadSelector: NewRoadSelector(),
 	}
 }
 
@@ -34,6 +36,10 @@ func (t *TrafficLightTool) GetHoverNode(mouseX, mouseY float64) *road.Node {
 
 func (t *TrafficLightTool) GetSelectedNode() *road.Node {
 	return t.selectedNode
+}
+
+func (t *TrafficLightTool) GetSelectedRoad() *road.Road {
+	return t.roadSelector.GetSelectedRoad()
 }
 
 func (t *TrafficLightTool) GetSelectedRoads() []*road.Road {
