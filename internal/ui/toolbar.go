@@ -5,7 +5,6 @@ import (
 	"traffic-sim/internal/input"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Toolbar struct {
@@ -40,11 +39,11 @@ func (tb *Toolbar) setupUI() {
 	spacing := 20.0
 	currentX := 10.0
 	
-	iconImg, _, _ := ebitenutil.NewImageFromFile("image/icons/point.png")
+	// iconImg, _, _ := ebitenutil.NewImageFromFile("image/icons/point.png")
 	tb.normalModeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Normal (ESC)", func() {
 		tb.inputHandler.SetMode(input.ModeNormal)
 	})
-	tb.normalModeBtn.SetIcon(iconImg,16,16)
+	// tb.normalModeBtn.SetIcon(iconImg,16,16)
 	tb.uiManager.AddButton(tb.normalModeBtn)
 	currentX += btnWidth + spacing
 	
