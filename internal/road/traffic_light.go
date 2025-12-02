@@ -12,6 +12,7 @@ type TrafficLight struct {
 	ID           string
 	Intersection *Intersection
 	ControlledRoads []*Road
+	PrevState	LightState
 	State        LightState
 	Timer        float64
 	GreenTime    float64
@@ -48,17 +49,23 @@ func (tl *TrafficLight) Update(dt float64) {
 	switch tl.State {
 	case LightGreen:
 		if tl.Timer >= tl.GreenTime {
+			tl.PrevState = tl.State
 			tl.State = LightYellow
 			tl.Timer = 0.0
 		}
 	case LightYellow:
 		if tl.Timer >= tl.YellowTime {
-			tl.State = LightRed
+			if tl.PrevState == LightGreen {
+				tl.State = LightRed
+			} else {
+				tl.State = LightGreen
+			}
 			tl.Timer = 0.0
 		}
 	case LightRed:
 		if tl.Timer >= tl.RedTime {
-			tl.State = LightGreen
+			tl.PrevState = tl.State
+			tl.State = LightYellow
 			tl.Timer = 0.0
 		}
 	}
