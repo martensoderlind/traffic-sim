@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"math"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/vehicle"
 	"traffic-sim/internal/world"
@@ -11,6 +12,7 @@ type MovementSystem struct {
 	deceleration  float64
 	acceleration  float64
 	minSpeed      float64
+	jerkLimit     float64
 }
 
 func NewMovementSystem() *MovementSystem {
@@ -19,6 +21,7 @@ func NewMovementSystem() *MovementSystem {
 		deceleration:  15.0,
 		acceleration:  10.0,
 		minSpeed:      5.0,
+		jerkLimit:     25.0,
 	}
 }
 
@@ -29,7 +32,7 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 	for _, v := range w.Vehicles {
 		targetSpeed := ms.calculateTargetSpeed(w, v)
 		
-		ms.adjustSpeed(v, targetSpeed, dt)
+		ms.adjustSpeedSmooth(v, targetSpeed, dt)
 		
 		newDist := v.Distance + v.Speed*dt
 		
@@ -58,8 +61,7 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	
 	intersection := w.IntersectionsByNode[v.Road.To.ID]
 	if intersection == nil || len(intersection.Outgoing) == 0 {
-		ratio := distToEnd / ms.lookAheadDist
-		return ms.minSpeed + (v.Road.MaxSpeed-ms.minSpeed)*ratio
+		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed)
 	}
 	
 	hasValidExit := false
@@ -71,11 +73,40 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	}
 	
 	if !hasValidExit {
-		ratio := distToEnd / ms.lookAheadDist
-		return ms.minSpeed + (v.Road.MaxSpeed-ms.minSpeed)*ratio
+		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed)
 	}
 	
 	return v.Road.MaxSpeed
+}
+
+func (ms *MovementSystem) calculateApproachSpeed(distToEnd, maxSpeed float64) float64 {
+	if distToEnd <= 0 {
+		return ms.minSpeed
+	}
+	
+	ratio := distToEnd / ms.lookAheadDist
+	
+	smoothRatio := ms.smoothStep(ratio)
+	
+	return ms.minSpeed + (maxSpeed-ms.minSpeed)*smoothRatio
+}
+
+func (ms *MovementSystem) smoothStep(x float64) float64 {
+	if x <= 0 {
+		return 0
+	}
+	if x >= 1 {
+		return 1
+	}
+	
+	return x * x * (3 - 2*x)
+}
+
+func (ms *MovementSystem) easeInOutCubic(x float64) float64 {
+	if x < 0.5 {
+		return 4 * x * x * x
+	}
+	return 1 - math.Pow(-2*x+2, 3)/2
 }
 
 func (ms *MovementSystem) hasDespawnPoint(w *world.World, rd *road.Road) bool {
@@ -87,19 +118,52 @@ func (ms *MovementSystem) hasDespawnPoint(w *world.World, rd *road.Road) bool {
 	return false
 }
 
-func (ms *MovementSystem) adjustSpeed(v *vehicle.Vehicle, targetSpeed, dt float64) {
-	if v.Speed < targetSpeed {
-		v.Speed += ms.acceleration * dt
-		if v.Speed > targetSpeed {
-			v.Speed = targetSpeed
-		}
-	} else if v.Speed > targetSpeed {
-		v.Speed -= ms.deceleration * dt
-		if v.Speed < targetSpeed {
-			v.Speed = targetSpeed
-		}
+func (ms *MovementSystem) adjustSpeedSmooth(v *vehicle.Vehicle, targetSpeed, dt float64) {
+	speedDiff := targetSpeed - v.Speed
+	
+	if math.Abs(speedDiff) < 0.1 {
+		v.Speed = targetSpeed
+		return
+	}
+	
+	if speedDiff > 0 {
+		maxAccel := ms.acceleration
+		
 		if v.Speed < ms.minSpeed {
-			v.Speed = ms.minSpeed
+			maxAccel *= 1.5
 		}
+		
+		speedRatio := v.Speed / v.Road.MaxSpeed
+		accelModifier := 1.0 - 0.3*speedRatio
+		maxAccel *= accelModifier
+		
+		change := math.Min(speedDiff, maxAccel*dt)
+		change = math.Min(change, ms.jerkLimit*dt)
+		
+		v.Speed += change
+		
+	} else {
+		maxDecel := ms.deceleration
+		
+		urgency := math.Abs(speedDiff) / v.Road.MaxSpeed
+		if urgency > 0.5 {
+			maxDecel *= (1.0 + urgency)
+		}
+		
+		change := math.Max(speedDiff, -maxDecel*dt)
+		change = math.Max(change, -ms.jerkLimit*dt)
+		
+		v.Speed += change
+		
+		if v.Speed < ms.minSpeed && targetSpeed < ms.minSpeed {
+			v.Speed = targetSpeed
+		}
+	}
+	
+	if v.Speed < 0 {
+		v.Speed = 0
+	}
+	if v.Speed > v.Road.MaxSpeed {
+		v.Speed = v.Road.MaxSpeed
 	}
 }
