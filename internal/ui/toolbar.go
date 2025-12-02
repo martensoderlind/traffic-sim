@@ -19,6 +19,7 @@ type Toolbar struct {
 	despawnBtn      *Button
 	roadDeleteBtn   *Button
 	nodeDeleteBtn   *Button
+	trafficLightBtn *Button
 	bidirToggle     *Button
 }
 
@@ -39,11 +40,9 @@ func (tb *Toolbar) setupUI() {
 	spacing := 20.0
 	currentX := 10.0
 	
-	// iconImg, _, _ := ebitenutil.NewImageFromFile("image/icons/point.png")
 	tb.normalModeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Normal (ESC)", func() {
 		tb.inputHandler.SetMode(input.ModeNormal)
 	})
-	// tb.normalModeBtn.SetIcon(iconImg,16,16)
 	tb.uiManager.AddButton(tb.normalModeBtn)
 	currentX += btnWidth + spacing
 	
@@ -83,6 +82,12 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeNodeDeleting)
 	})
 	tb.uiManager.AddButton(tb.nodeDeleteBtn)
+	currentX += btnWidth + spacing
+
+	tb.trafficLightBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Traffic Light (T)", func() {
+		tb.inputHandler.SetMode(input.ModeTrafficLight)
+	})
+	tb.uiManager.AddButton(tb.trafficLightBtn)
 	currentX += btnWidth + spacing
 	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
@@ -151,6 +156,16 @@ func (tb *Toolbar) updateModeIndicator() {
 	case input.ModeNodeDeleting:
 		modeText = "Mode: Delete Node (Click on node - deletes all connected roads)"
 		bgColor = color.RGBA{80, 20, 20, 230}
+	case input.ModeTrafficLight:
+		modeText = "Mode: Add Traffic Light"
+		bgColor = color.RGBA{80, 80, 20, 230}
+		if tb.inputHandler.TrafficLightTool().GetSelectedNode() != nil {
+			if tb.inputHandler.TrafficLightTool().GetSelectedRoad() != nil {
+				modeText = "Mode: Traffic Light (Road Selected - Click to Confirm)"
+			} else {
+				modeText = "Mode: Traffic Light (Node Selected - Tab to Cycle)"
+			}
+		}
 	}
 	
 	tb.modeIndicator.Text = modeText
@@ -211,6 +226,12 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.nodeDeleteBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.nodeDeleteBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+
+	if mode == input.ModeTrafficLight {
+		tb.trafficLightBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.trafficLightBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {

@@ -24,15 +24,15 @@ const (
 )
 
 type InputHandler struct {
-	mode           Mode
-	roadTool       *tools.RoadBuildingTool
-	moveTool       *tools.NodeMoveTool
-	spawnTool      *tools.SpawnTool
-	despawnTool    *tools.DespawnTool
-	roadDeleteTool *tools.RoadDeleteTool
-	nodeDeleteTool *tools.NodeDeleteTool
-	mouseX, mouseY int
+	mode             Mode
+	roadTool         *tools.RoadBuildingTool
+	moveTool         *tools.NodeMoveTool
+	spawnTool        *tools.SpawnTool
+	despawnTool      *tools.DespawnTool
+	roadDeleteTool   *tools.RoadDeleteTool
+	nodeDeleteTool   *tools.NodeDeleteTool
 	trafficLightTool *tools.TrafficLightTool
+	mouseX, mouseY   int
 }
 
 func NewInputHandler(w *world.World) *InputHandler {
@@ -45,15 +45,15 @@ func NewInputHandler(w *world.World) *InputHandler {
 	roadDeleteTool := tools.NewRoadDeleteTool(executor, query)
 	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
 	trafficLightTool := tools.NewTrafficLightTool(executor, query)
-
+	
 	return &InputHandler{
-		mode:           ModeNormal,
-		roadTool:       roadTool,
-		moveTool:       moveTool,
-		spawnTool:      spawnTool,
-		despawnTool:    despawnTool,
-		roadDeleteTool: roadDeleteTool,
-		nodeDeleteTool: nodeDeleteTool,
+		mode:             ModeNormal,
+		roadTool:         roadTool,
+		moveTool:         moveTool,
+		spawnTool:        spawnTool,
+		despawnTool:      despawnTool,
+		roadDeleteTool:   roadDeleteTool,
+		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
 	}
 }
@@ -73,6 +73,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	h.despawnTool.Cancel()
 	h.roadDeleteTool.Cancel()
 	h.nodeDeleteTool.Cancel()
+	h.trafficLightTool.Cancel()
 	h.mode = mode
 }
 
@@ -102,6 +103,10 @@ func (h *InputHandler) RoadDeleteTool() *tools.RoadDeleteTool {
 
 func (h *InputHandler) NodeDeleteTool() *tools.NodeDeleteTool {
 	return h.nodeDeleteTool
+}
+
+func (h *InputHandler) TrafficLightTool() *tools.TrafficLightTool {
+	return h.trafficLightTool
 }
 
 func (h *InputHandler) MousePos() (int, int) {
@@ -169,6 +174,15 @@ func (h *InputHandler) handleModeSwitch() {
 			h.nodeDeleteTool.Cancel()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+		if h.mode == ModeNormal {
+			h.mode = ModeTrafficLight
+		} else {
+			h.mode = ModeNormal
+			h.trafficLightTool.Cancel()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
@@ -178,6 +192,7 @@ func (h *InputHandler) handleModeSwitch() {
 		h.despawnTool.Cancel()
 		h.roadDeleteTool.Cancel()
 		h.nodeDeleteTool.Cancel()
+		h.trafficLightTool.Cancel()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
@@ -190,6 +205,10 @@ func (h *InputHandler) handleModeSwitch() {
 
 	if h.mode == ModeDespawning && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
 		h.despawnTool.CycleRoad()
+	}
+
+	if h.mode == ModeTrafficLight && inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+		h.trafficLightTool.CycleRoad()
 	}
 }
 
@@ -207,6 +226,8 @@ func (h *InputHandler) handleToolInput() {
 		h.handleRoadDeletingInput()
 	case ModeNodeDeleting:
 		h.handleNodeDeletingInput()
+	case ModeTrafficLight:
+		h.handleTrafficLightInput()
 	}
 }
 
@@ -263,5 +284,15 @@ func (h *InputHandler) handleRoadDeletingInput() {
 func (h *InputHandler) handleNodeDeletingInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		h.nodeDeleteTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+}
+
+func (h *InputHandler) handleTrafficLightInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.trafficLightTool.Cancel()
 	}
 }
