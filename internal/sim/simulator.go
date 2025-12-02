@@ -60,3 +60,6 @@ func (s *Simulator) update() {
 func (s *Simulator) TogglePause() {
 	s.paused = !s.paused
 }
+func (s *Simulator) IsPaused() bool {
+	return s.paused
+}

@@ -12,6 +12,7 @@ type Toolbar struct {
 	uiManager     *UIManager
 	inputHandler  *input.InputHandler
 	modeIndicator *Label
+	simulationState *Label
 	
 	roadBuildBtn    *Button
 	moveNodeBtn     *Button
@@ -96,16 +97,23 @@ func (tb *Toolbar) setupUI() {
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
 	
-	tb.modeIndicator = NewLabel(10, btnY+btnHeight+spacing, "Mode: Normal")
-	tb.modeIndicator.Size = 14
 	bgColor := color.RGBA{40, 40, 50, 230}
+
+	tb.modeIndicator = NewLabel(9, btnY+btnHeight+spacing, "Mode: Normal")
+	tb.modeIndicator.Size = 14
 	tb.modeIndicator.SetBackground(bgColor)
 	tb.uiManager.AddLabel(tb.modeIndicator)
+
+	tb.simulationState = NewLabel(9, btnY+btnHeight+spacing+39, "Simulation: Running")
+	tb.simulationState.Size = 14
+	tb.simulationState.SetBackground(bgColor)
+	tb.uiManager.AddLabel(tb.simulationState)
 }
 
 func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 	tb.uiManager.Update(mouseX, mouseY, clicked)
 	tb.updateModeIndicator()
+	tb.updateSimulationStatus()
 	tb.updateButtonStates()
 }
 
@@ -172,6 +180,25 @@ func (tb *Toolbar) updateModeIndicator() {
 	
 	tb.modeIndicator.Text = modeText
 	tb.modeIndicator.SetBackground(bgColor)
+}
+
+func (tb *Toolbar) updateSimulationStatus() {
+	mode := tb.inputHandler.Simulator.IsPaused()
+	
+	var modeText string
+	var bgColor color.RGBA
+	
+	switch mode {
+	case true:
+		modeText = "Simulation: Paused"
+		bgColor = color.RGBA{40, 40, 50, 230}
+	case false:
+		modeText = "Simulation: Running"
+		bgColor = color.RGBA{60, 80, 40, 230}
+	}
+	
+	tb.simulationState.Text = modeText
+	tb.simulationState.SetBackground(bgColor)
 }
 
 func (tb *Toolbar) updateButtonStates() {

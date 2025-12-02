@@ -37,7 +37,7 @@ type InputHandler struct {
 	nodeDeleteTool   *tools.NodeDeleteTool
 	trafficLightTool *tools.TrafficLightTool
 	mouseX, mouseY   int
-	simulator 	     *sim.Simulator
+	Simulator 	     *sim.Simulator
 }
 
 func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
@@ -61,7 +61,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 		roadDeleteTool:   roadDeleteTool,
 		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
-		simulator:        simulator,
+		Simulator:        simulator,
 	}
 }
 
@@ -222,7 +222,7 @@ func (h *InputHandler) handleModeSwitch() {
 		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
 	}
 	if h.mode == ModeNormal && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		h.simulator.TogglePause()
+		h.Simulator.TogglePause()
 	}
 }
 
