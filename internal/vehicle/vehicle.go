@@ -31,5 +31,5 @@ func (v *Vehicle) GetAngle() float64 {
 	dx := v.Road.To.X - v.Road.From.X
 	dy := v.Road.To.Y - v.Road.From.Y
 
-	return math.Atan2(dy, dx)
+	return math.Atan2(dy, dx)+math.Pi/2
 }
