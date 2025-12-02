@@ -4,7 +4,6 @@ import (
 	"image/color"
 	"math"
 	"traffic-sim/internal/input"
-	"traffic-sim/internal/road"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -261,46 +260,4 @@ func (or *OverlayRenderer) renderTrafficLightOverlay(screen *ebiten.Image, input
 			}
 		}
 	}
-}
-
-func (or *OverlayRenderer) drawDirectionIndicator(screen *ebiten.Image, node *road.Node, rd *road.Road, clr color.RGBA) {
-	dx := float32(rd.To.X - rd.From.X)
-	dy := float32(rd.To.Y - rd.From.Y)
-	length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
-
-	if length == 0 {
-		return
-	}
-
-	dx /= length
-	dy /= length
-
-	x := float32(node.X)
-	y := float32(node.Y)
-	arrowLen := float32(25.0)
-	x2 := x + dx*arrowLen
-	y2 := y + dy*arrowLen
-
-	vector.StrokeLine(screen, x, y, x2, y2, 4, clr, false)
-}
-
-func (or *OverlayRenderer) drawReverseDirectionIndicator(screen *ebiten.Image, node *road.Node, rd *road.Road, clr color.RGBA) {
-	dx := float32(rd.To.X - rd.From.X)
-	dy := float32(rd.To.Y - rd.From.Y)
-	length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
-
-	if length == 0 {
-		return
-	}
-
-	dx /= length
-	dy /= length
-
-	x := float32(node.X)
-	y := float32(node.Y)
-	arrowLen := float32(25.0)
-	x1 := x - dx*arrowLen
-	y1 := y - dy*arrowLen
-
-	vector.StrokeLine(screen, x1, y1, x, y, 4, clr, false)
 }
