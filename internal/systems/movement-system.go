@@ -51,37 +51,41 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicle) float64 {
 	distToEnd := v.Road.Length - v.Distance
 	
-	effectiveLookAhead := ms.lookAheadDist
-	if v.Road.Length < ms.lookAheadDist {
-    	effectiveLookAhead = v.Road.Length * 0.3
-	}
-
-	if distToEnd > effectiveLookAhead {
-		return v.Road.MaxSpeed
-	}
-	
 	if ms.hasDespawnPoint(w, v.Road) {
 		return v.Road.MaxSpeed
 	}
 	
-	intersection := w.IntersectionsByNode[v.Road.To.ID]
-	if intersection == nil || len(intersection.Outgoing) == 0 {
-		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed,effectiveLookAhead)
+	hasValidExit := ms.hasValidExit(w, v)
+	
+	if hasValidExit {
+		return v.Road.MaxSpeed
 	}
 	
-	hasValidExit := false
+	effectiveLookAhead := math.Min(ms.lookAheadDist, v.Road.Length * 0.4)
+	if effectiveLookAhead < 20.0 {
+		effectiveLookAhead = 20.0
+	}
+	
+	if distToEnd > effectiveLookAhead {
+		return v.Road.MaxSpeed
+	}
+	
+	return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed, effectiveLookAhead)
+}
+
+func (ms *MovementSystem) hasValidExit(w *world.World, v *vehicle.Vehicle) bool {
+	intersection := w.IntersectionsByNode[v.Road.To.ID]
+	if intersection == nil || len(intersection.Outgoing) == 0 {
+		return false
+	}
+	
 	for _, r := range intersection.Outgoing {
 		if !(r.From == v.Road.To && r.To == v.Road.From) {
-			hasValidExit = true
-			break
+			return true
 		}
 	}
 	
-	if !hasValidExit {
-		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed,effectiveLookAhead)
-	}
-	
-	return v.Road.MaxSpeed
+	return false
 }
 
 func (ms *MovementSystem) calculateApproachSpeed(distToEnd, maxSpeed, effectiveLookAhead float64) float64 {

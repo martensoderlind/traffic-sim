@@ -14,8 +14,8 @@ type CollisionSystem struct {
 func NewCollisionSystem() *CollisionSystem {
 	return &CollisionSystem{
 		safeDistance:     15.0,
-		emergencyBrake:   30.0,
-		anticipationDist: 40.0,
+		emergencyBrake:   20.0,
+		anticipationDist: 30.0,
 	}
 }
 
