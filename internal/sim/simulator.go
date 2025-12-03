@@ -1,8 +1,10 @@
 package sim
 
 import (
+	"log"
 	"time"
 
+	"traffic-sim/internal/config"
 	"traffic-sim/internal/systems"
 	"traffic-sim/internal/world"
 )
@@ -16,10 +18,18 @@ type Simulator struct {
 }
 
 func NewSimulator(w *world.World, tickRate time.Duration) *Simulator {
+
+	cfg,err:= config.LoadConfig()
+	if err != nil {
+        log.Fatalf("Could not load config: %v", err)
+    }
 	sm := systems.NewSystemManager()
 	sm.AddSystem(systems.NewSpawnSystem())
 	sm.AddSystem(systems.NewCollisionSystem())
 	sm.AddSystem(systems.NewTrafficLightSystem())
+	if cfg.FeatureFlags.RightOfWaySystem && err	== nil {
+		sm.AddSystem(systems.NewRightOfWaySystem())
+	}
 	sm.AddSystem(systems.NewPathfindingSystem())
 	sm.AddSystem(systems.NewMovementSystem())
 	sm.AddSystem(systems.NewDespawnSystem())
