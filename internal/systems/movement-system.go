@@ -107,13 +107,6 @@ func (ms *MovementSystem) smoothStep(x float64) float64 {
 	return x * x * (3 - 2*x)
 }
 
-func (ms *MovementSystem) easeInOutCubic(x float64) float64 {
-	if x < 0.5 {
-		return 4 * x * x * x
-	}
-	return 1 - math.Pow(-2*x+2, 3)/2
-}
-
 func (ms *MovementSystem) hasDespawnPoint(w *world.World, rd *road.Road) bool {
 	for _, dp := range w.DespawnPoints {
 		if dp.Enabled && dp.Road == rd {
