@@ -25,6 +25,7 @@ const (
 	ModeRoadDeleting
 	ModeNodeDeleting
 	ModeTrafficLight
+	ModeRoadProperties
 )
 
 type InputHandler struct {
@@ -38,6 +39,7 @@ type InputHandler struct {
 	trafficLightTool *tools.TrafficLightTool
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
+	roadPropTool *tools.RoadPropertiesTool
 }
 
 func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
@@ -50,6 +52,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 	roadDeleteTool := tools.NewRoadDeleteTool(executor, query)
 	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
 	trafficLightTool := tools.NewTrafficLightTool(executor, query)
+	roadPropTool := tools.NewRoadPropertiesTool(executor, query)
 	simulator := s
 	
 	return &InputHandler{
@@ -61,6 +64,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 		roadDeleteTool:   roadDeleteTool,
 		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
+		roadPropTool: roadPropTool,
 		Simulator:        simulator,
 	}
 }
@@ -118,6 +122,10 @@ func (h *InputHandler) TrafficLightTool() *tools.TrafficLightTool {
 
 func (h *InputHandler) MousePos() (int, int) {
 	return h.mouseX, h.mouseY
+}
+
+func (h *InputHandler) RoadPropTool() *tools.RoadPropertiesTool {
+    return h.roadPropTool
 }
 
 func (h *InputHandler) Update() {
@@ -190,6 +198,15 @@ func (h *InputHandler) handleModeSwitch() {
 			h.trafficLightTool.Cancel()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+        if h.mode == ModeNormal {
+            h.mode = ModeRoadProperties
+        } else {
+            h.mode = ModeNormal
+            h.roadPropTool.Cancel()
+        }
+    }
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
@@ -242,7 +259,9 @@ func (h *InputHandler) handleToolInput() {
 		h.handleNodeDeletingInput()
 	case ModeTrafficLight:
 		h.handleTrafficLightInput()
-	}
+	case ModeRoadProperties:
+        h.handleRoadPropertiesInput()
+    }
 }
 
 func (h *InputHandler) handleRoadBuildingInput() {
@@ -299,6 +318,12 @@ func (h *InputHandler) handleNodeDeletingInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		h.nodeDeleteTool.Click(float64(h.mouseX), float64(h.mouseY))
 	}
+}
+
+func (h *InputHandler) handleRoadPropertiesInput() {
+    if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+        h.roadPropTool.Click(float64(h.mouseX), float64(h.mouseY))
+    }
 }
 
 func (h *InputHandler) handleTrafficLightInput() {
