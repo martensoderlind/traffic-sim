@@ -51,7 +51,12 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicle) float64 {
 	distToEnd := v.Road.Length - v.Distance
 	
-	if distToEnd > ms.lookAheadDist {
+	effectiveLookAhead := ms.lookAheadDist
+	if v.Road.Length < ms.lookAheadDist {
+    	effectiveLookAhead = v.Road.Length * 0.3
+	}
+
+	if distToEnd > effectiveLookAhead {
 		return v.Road.MaxSpeed
 	}
 	
@@ -61,7 +66,7 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	
 	intersection := w.IntersectionsByNode[v.Road.To.ID]
 	if intersection == nil || len(intersection.Outgoing) == 0 {
-		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed)
+		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed,effectiveLookAhead)
 	}
 	
 	hasValidExit := false
@@ -73,18 +78,18 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	}
 	
 	if !hasValidExit {
-		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed)
+		return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed,effectiveLookAhead)
 	}
 	
 	return v.Road.MaxSpeed
 }
 
-func (ms *MovementSystem) calculateApproachSpeed(distToEnd, maxSpeed float64) float64 {
+func (ms *MovementSystem) calculateApproachSpeed(distToEnd, maxSpeed, effectiveLookAhead float64) float64 {
 	if distToEnd <= 0 {
 		return ms.minSpeed
 	}
 	
-	ratio := distToEnd / ms.lookAheadDist
+	ratio := distToEnd / effectiveLookAhead
 	
 	smoothRatio := ms.smoothStep(ratio)
 	
