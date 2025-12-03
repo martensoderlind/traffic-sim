@@ -170,6 +170,8 @@ func (ti *TextInput) Update(mouseX, mouseY int, clicked bool) {
 	}
 }
 
+var lastBackspaceTime float64
+
 func (ti *TextInput) handleInput() {
 	inputChars := ebiten.AppendInputChars(nil)
 	for _, ch := range inputChars {
@@ -179,8 +181,12 @@ func (ti *TextInput) handleInput() {
 	}
 	
 	if ebiten.IsKeyPressed(ebiten.KeyBackspace) {
-		if len(ti.Text) > 0 {
-			ti.Text = ti.Text[:len(ti.Text)-1]
+		currentTime := float64(ebiten.ActualTPS()) / 60.0
+		if currentTime-lastBackspaceTime > 0.1 {
+			if len(ti.Text) > 0 {
+				ti.Text = ti.Text[:len(ti.Text)-1]
+			}
+			lastBackspaceTime = currentTime
 		}
 	}
 }

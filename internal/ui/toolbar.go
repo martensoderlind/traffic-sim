@@ -94,23 +94,17 @@ func (tb *Toolbar) setupUI() {
 	tb.uiManager.AddButton(tb.trafficLightBtn)
 	currentX += btnWidth + spacing
 	
+	tb.roadPropBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Road Props (P)", func() {
+		tb.inputHandler.SetMode(input.ModeRoadProperties)
+	})
+	tb.uiManager.AddButton(tb.roadPropBtn)
+	currentX += btnWidth + spacing
+	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
 		tb.inputHandler.ToggleBidirectional()
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
 	
-	tb.roadPropBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Road Props (P)", func() {
-        tb.inputHandler.SetMode(input.ModeRoadProperties)
-    })
-    tb.uiManager.AddButton(tb.roadPropBtn)
-    
-    tb.roadPropertiesPanel = NewRoadPropertiesPanel(400, 200)
-    tb.roadPropertiesPanel.SetOnApply(func(maxSpeed, width float64) {
-        if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
-            tb.inputHandler.RoadPropTool().UpdateRoadProperties(maxSpeed, width)
-        }
-    })
-
 	bgColor := color.RGBA{40, 40, 50, 230}
 
 	tb.modeIndicator = NewLabel(9, btnY+btnHeight+spacing, "Mode: Normal")
@@ -122,22 +116,35 @@ func (tb *Toolbar) setupUI() {
 	tb.simulationState.Size = 14
 	tb.simulationState.SetBackground(bgColor)
 	tb.uiManager.AddLabel(tb.simulationState)
+	
+	tb.roadPropertiesPanel = NewRoadPropertiesPanel(400, 200)
+	tb.roadPropertiesPanel.SetOnApply(func(maxSpeed, width float64) {
+		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
+			tb.inputHandler.RoadPropTool().UpdateRoadProperties(maxSpeed, width)
+			tb.roadPropertiesPanel.Hide()
+		}
+	})
 }
 
 func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
-    tb.uiManager.Update(mouseX, mouseY, clicked)
-    tb.updateModeIndicator()
+	tb.uiManager.Update(mouseX, mouseY, clicked)
+	tb.updateModeIndicator()
 	tb.updateSimulationStatus()
-    tb.updateButtonStates()
-    tb.roadPropertiesPanel.Update(mouseX, mouseY, clicked)
-    
-    mode := tb.inputHandler.Mode()
-    if mode == input.ModeRoadProperties {
-        selectedRoad := tb.inputHandler.RoadPropTool().GetSelectedRoad()
-        if selectedRoad != nil && !tb.roadPropertiesPanel.Visible {
-            tb.roadPropertiesPanel.Show(selectedRoad.MaxSpeed, selectedRoad.Width)
-        }
-    }
+	tb.updateButtonStates()
+	
+	mode := tb.inputHandler.Mode()
+	if mode == input.ModeRoadProperties {
+		selectedRoad := tb.inputHandler.RoadPropTool().GetSelectedRoad()
+		if selectedRoad != nil && !tb.roadPropertiesPanel.Visible {
+			tb.roadPropertiesPanel.Show(selectedRoad.MaxSpeed, selectedRoad.Width)
+		} else if selectedRoad == nil {
+			tb.roadPropertiesPanel.Hide()
+		}
+	} else {
+		tb.roadPropertiesPanel.Hide()
+	}
+	
+	tb.roadPropertiesPanel.Update(mouseX, mouseY, clicked)
 }
 
 func (tb *Toolbar) updateModeIndicator() {
@@ -185,12 +192,6 @@ func (tb *Toolbar) updateModeIndicator() {
 	case input.ModeRoadDeleting:
 		modeText = "Mode: Delete Road (Click on road)"
 		bgColor = color.RGBA{80, 20, 20, 230}
-	case input.ModeRoadProperties:
-        modeText = "Mode: Edit Road Properties (Click road)"
-        bgColor = color.RGBA{40, 80, 80, 230}
-        if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
-            modeText = "Mode: Edit Road Properties (Selected)"
-        }
 	case input.ModeNodeDeleting:
 		modeText = "Mode: Delete Node (Click on node - deletes all connected roads)"
 		bgColor = color.RGBA{80, 20, 20, 230}
@@ -204,6 +205,12 @@ func (tb *Toolbar) updateModeIndicator() {
 			} else {
 				modeText = "Mode: Traffic Light (Node Selected - Click roads to control)"
 			}
+		}
+	case input.ModeRoadProperties:
+		modeText = "Mode: Edit Road Properties (Click road)"
+		bgColor = color.RGBA{40, 80, 80, 230}
+		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
+			modeText = "Mode: Edit Road Properties (Selected - Edit in panel)"
 		}
 	}
 	
@@ -290,6 +297,12 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.trafficLightBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.trafficLightBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeRoadProperties {
+		tb.roadPropBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.roadPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {

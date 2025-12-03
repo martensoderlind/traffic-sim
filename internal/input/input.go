@@ -64,7 +64,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 		roadDeleteTool:   roadDeleteTool,
 		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
-		roadPropTool: roadPropTool,
+		roadPropTool:     roadPropTool,
 		Simulator:        simulator,
 	}
 }
@@ -85,6 +85,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	h.roadDeleteTool.Cancel()
 	h.nodeDeleteTool.Cancel()
 	h.trafficLightTool.Cancel()
+	h.roadPropTool.Cancel()
 	h.mode = mode
 }
 
@@ -198,15 +199,15 @@ func (h *InputHandler) handleModeSwitch() {
 			h.trafficLightTool.Cancel()
 		}
 	}
-
+	
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
-        if h.mode == ModeNormal {
-            h.mode = ModeRoadProperties
-        } else {
-            h.mode = ModeNormal
-            h.roadPropTool.Cancel()
-        }
-    }
+		if h.mode == ModeNormal {
+			h.mode = ModeRoadProperties
+		} else {
+			h.mode = ModeNormal
+			h.roadPropTool.Cancel()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
@@ -217,6 +218,7 @@ func (h *InputHandler) handleModeSwitch() {
 		h.roadDeleteTool.Cancel()
 		h.nodeDeleteTool.Cancel()
 		h.trafficLightTool.Cancel()
+		h.roadPropTool.Cancel()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
@@ -260,8 +262,8 @@ func (h *InputHandler) handleToolInput() {
 	case ModeTrafficLight:
 		h.handleTrafficLightInput()
 	case ModeRoadProperties:
-        h.handleRoadPropertiesInput()
-    }
+		h.handleRoadPropertiesInput()
+	}
 }
 
 func (h *InputHandler) handleRoadBuildingInput() {
@@ -321,9 +323,13 @@ func (h *InputHandler) handleNodeDeletingInput() {
 }
 
 func (h *InputHandler) handleRoadPropertiesInput() {
-    if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-        h.roadPropTool.Click(float64(h.mouseX), float64(h.mouseY))
-    }
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.roadPropTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+	
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.roadPropTool.Cancel()
+	}
 }
 
 func (h *InputHandler) handleTrafficLightInput() {

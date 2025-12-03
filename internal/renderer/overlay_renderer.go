@@ -34,7 +34,7 @@ func (or *OverlayRenderer) RenderToolOverlay(screen *ebiten.Image, inputHandler 
 	case input.ModeTrafficLight:
 		or.renderTrafficLightOverlay(screen, inputHandler)
 	case input.ModeRoadProperties:
-        or.renderRoadPropertiesOverlay(screen, inputHandler)
+		or.renderRoadPropertiesOverlay(screen, inputHandler)
 	}
 }
 
@@ -264,29 +264,29 @@ func (or *OverlayRenderer) renderTrafficLightOverlay(screen *ebiten.Image, input
 	}
 }
 func (or *OverlayRenderer) renderRoadPropertiesOverlay(screen *ebiten.Image, inputHandler *input.InputHandler) {
-    mouseX, mouseY := inputHandler.MousePos()
-    mx := float64(mouseX)
-    my := float64(mouseY)
+	mouseX, mouseY := inputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
 
-    roadPropTool := inputHandler.RoadPropTool()
-    hoverRoad := roadPropTool.GetHoverRoad(mx, my)
+	roadPropTool := inputHandler.RoadPropTool()
+	hoverRoad := roadPropTool.GetHoverRoad(mx, my)
 
-    if hoverRoad != nil {
-        x1 := float32(hoverRoad.From.X)
-        y1 := float32(hoverRoad.From.Y)
-        x2 := float32(hoverRoad.To.X)
-        y2 := float32(hoverRoad.To.Y)
+	if hoverRoad != nil {
+		x1 := float32(hoverRoad.From.X)
+		y1 := float32(hoverRoad.From.Y)
+		x2 := float32(hoverRoad.To.X)
+		y2 := float32(hoverRoad.To.Y)
 
-        vector.StrokeLine(screen, x1, y1, x2, y2, float32(hoverRoad.Width+4), color.RGBA{100, 200, 255, 200}, false)
-    }
+		vector.StrokeLine(screen, x1, y1, x2, y2, float32(hoverRoad.Width+4), color.RGBA{100, 200, 255, 200}, false)
+	}
 
-    selectedRoad := roadPropTool.GetSelectedRoad()
-    if selectedRoad != nil {
-        x1 := float32(selectedRoad.From.X)
-        y1 := float32(selectedRoad.From.Y)
-        x2 := float32(selectedRoad.To.X)
-        y2 := float32(selectedRoad.To.Y)
+	selectedRoad := roadPropTool.GetSelectedRoad()
+	if selectedRoad != nil {
+		x1 := float32(selectedRoad.From.X)
+		y1 := float32(selectedRoad.From.Y)
+		x2 := float32(selectedRoad.To.X)
+		y2 := float32(selectedRoad.To.Y)
 
-        vector.StrokeLine(screen, x1, y1, x2, y2, float32(selectedRoad.Width+6), color.RGBA{255, 255, 100, 255}, false)
-    }
+		vector.StrokeLine(screen, x1, y1, x2, y2, float32(selectedRoad.Width+6), color.RGBA{255, 255, 100, 255}, false)
+	}
 }
