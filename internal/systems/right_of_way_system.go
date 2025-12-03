@@ -13,6 +13,7 @@ type RightOfWaySystem struct {
 	yieldDistance       float64
 	stopDistance        float64
 	vehicleArrivalTimes map[string]map[string]float64
+	waitingVehicles     map[string]float64
 }
 
 func NewRightOfWaySystem() *RightOfWaySystem {
@@ -20,8 +21,9 @@ func NewRightOfWaySystem() *RightOfWaySystem {
 		rules:               make(map[string]*road.RightOfWayRule),
 		approachDistance:    60.0,
 		yieldDistance:       30.0,
-		stopDistance:        15.0,
+		stopDistance:        10.0,
 		vehicleArrivalTimes: make(map[string]map[string]float64),
+		waitingVehicles:     make(map[string]float64),
 	}
 }
 
@@ -30,8 +32,8 @@ func (rows *RightOfWaySystem) Update(w *world.World, dt float64) {
 	defer w.Mu.Unlock()
 
 	rows.updateRules(w)
-	rows.updateVehicleArrivalTimes(w)
-	rows.applyRightOfWayRules(w)
+	rows.updateVehicleArrivalTimes(w, dt)
+	rows.applyRightOfWayRules(w, dt)
 }
 
 func (rows *RightOfWaySystem) updateRules(w *world.World) {
@@ -62,11 +64,6 @@ func (rows *RightOfWaySystem) assignPriorities(rule *road.RightOfWayRule, inters
 	allRoads := append([]*road.Road{}, intersection.Incoming...)
 	allRoads = append(allRoads, intersection.Outgoing...)
 
-	roadAngles := make(map[string]float64)
-	for _, rd := range allRoads {
-		roadAngles[rd.ID] = road.CalculateRoadAngle(rd)
-	}
-
 	for _, rd := range allRoads {
 		priority := road.PriorityNormal
 		
@@ -80,7 +77,7 @@ func (rows *RightOfWaySystem) assignPriorities(rule *road.RightOfWayRule, inters
 	}
 }
 
-func (rows *RightOfWaySystem) updateVehicleArrivalTimes(w *world.World) {
+func (rows *RightOfWaySystem) updateVehicleArrivalTimes(w *world.World, dt float64) {
 	for intersectionID := range rows.rules {
 		if rows.vehicleArrivalTimes[intersectionID] == nil {
 			rows.vehicleArrivalTimes[intersectionID] = make(map[string]float64)
@@ -107,7 +104,7 @@ func (rows *RightOfWaySystem) updateVehicleArrivalTimes(w *world.World) {
 			if _, exists := rows.vehicleArrivalTimes[intersection.ID][v.ID]; !exists {
 				rows.vehicleArrivalTimes[intersection.ID][v.ID] = 0
 			} else {
-				rows.vehicleArrivalTimes[intersection.ID][v.ID] += 0.016
+				rows.vehicleArrivalTimes[intersection.ID][v.ID] += dt
 			}
 		}
 	}
@@ -119,9 +116,17 @@ func (rows *RightOfWaySystem) updateVehicleArrivalTimes(w *world.World) {
 			}
 		}
 	}
+
+	for vehicleID := range rows.waitingVehicles {
+		if !currentVehicles[vehicleID] {
+			delete(rows.waitingVehicles, vehicleID)
+		} else {
+			rows.waitingVehicles[vehicleID] += dt
+		}
+	}
 }
 
-func (rows *RightOfWaySystem) applyRightOfWayRules(w *world.World) {
+func (rows *RightOfWaySystem) applyRightOfWayRules(w *world.World, dt float64) {
 	for _, v := range w.Vehicles {
 		if v.NextRoad == nil {
 			continue
@@ -147,9 +152,18 @@ func (rows *RightOfWaySystem) applyRightOfWayRules(w *world.World) {
 			continue
 		}
 
+		waitTime := rows.waitingVehicles[v.ID]
+		if waitTime > 5.0 {
+			rows.applyGracefulPassage(v, distToEnd)
+			continue
+		}
+
 		shouldYield := rows.shouldVehicleYield(w, v, intersection, rule)
 
 		if shouldYield {
+			if v.Speed < 1.0 {
+				rows.waitingVehicles[v.ID] = waitTime
+			}
 			rows.applyYieldBehavior(v, distToEnd)
 		}
 	}
@@ -158,9 +172,17 @@ func (rows *RightOfWaySystem) applyRightOfWayRules(w *world.World) {
 func (rows *RightOfWaySystem) shouldVehicleYield(w *world.World, v *vehicle.Vehicle, intersection *road.Intersection, rule *road.RightOfWayRule) bool {
 	conflictingVehicles := rows.findConflictingVehicles(w, v, intersection)
 
+	if len(conflictingVehicles) == 0 {
+		return false
+	}
+
 	for _, conflicting := range conflictingVehicles {
 		if rows.hasHigherPriority(v, conflicting, rule) {
 			continue
+		}
+
+		if rows.hasHigherPriority(conflicting, v, rule) {
+			return true
 		}
 
 		if rows.arrivedEarlier(intersection.ID, conflicting.ID, v.ID) {
@@ -168,7 +190,10 @@ func (rows *RightOfWaySystem) shouldVehicleYield(w *world.World, v *vehicle.Vehi
 		}
 
 		if road.IsComingFromRight(v.Road, conflicting.Road) {
-			return true
+			distToEndOther := conflicting.Road.Length - conflicting.Distance
+			if distToEndOther < rows.yieldDistance {
+				return true
+			}
 		}
 	}
 
@@ -197,7 +222,7 @@ func (rows *RightOfWaySystem) findConflictingVehicles(w *world.World, v *vehicle
 			continue
 		}
 
-		if rows.pathsConflict(v, other) {
+		if rows.pathsConflict(v, other, intersection) {
 			conflicting = append(conflicting, other)
 		}
 	}
@@ -205,8 +230,12 @@ func (rows *RightOfWaySystem) findConflictingVehicles(w *world.World, v *vehicle
 	return conflicting
 }
 
-func (rows *RightOfWaySystem) pathsConflict(v1, v2 *vehicle.Vehicle) bool {
+func (rows *RightOfWaySystem) pathsConflict(v1, v2 *vehicle.Vehicle, intersection *road.Intersection) bool {
 	if v1.NextRoad == nil || v2.NextRoad == nil {
+		return false
+	}
+
+	if v1.Road.ID == v2.Road.ID {
 		return false
 	}
 
@@ -214,16 +243,26 @@ func (rows *RightOfWaySystem) pathsConflict(v1, v2 *vehicle.Vehicle) bool {
 		return true
 	}
 
-	if road.IsLeftTurn(v1.Road, v1.NextRoad) && road.IsStraight(v2.Road, v2.NextRoad) {
-		return true
+	if road.IsLeftTurn(v1.Road, v1.NextRoad) {
+		if road.IsStraight(v2.Road, v2.NextRoad) || road.IsLeftTurn(v2.Road, v2.NextRoad) {
+			angle1 := road.CalculateRoadAngle(v1.Road)
+			angle2 := road.CalculateRoadAngle(v2.Road)
+			angleDiff := math.Abs(angle1 - angle2)
+			
+			if angleDiff > math.Pi/4 && angleDiff < 3*math.Pi/4 {
+				return true
+			}
+		}
 	}
 
 	if road.IsStraight(v1.Road, v1.NextRoad) && road.IsLeftTurn(v2.Road, v2.NextRoad) {
-		return true
-	}
-
-	if road.IsLeftTurn(v1.Road, v1.NextRoad) && road.IsLeftTurn(v2.Road, v2.NextRoad) {
-		return true
+		angle1 := road.CalculateRoadAngle(v1.Road)
+		angle2 := road.CalculateRoadAngle(v2.Road)
+		angleDiff := math.Abs(angle1 - angle2)
+		
+		if angleDiff > math.Pi/4 && angleDiff < 3*math.Pi/4 {
+			return true
+		}
 	}
 
 	return false
@@ -249,29 +288,43 @@ func (rows *RightOfWaySystem) arrivedEarlier(intersectionID, vehicleID1, vehicle
 		return false
 	}
 
-	return time1 > time2
+	timeDiff := time1 - time2
+	
+	return timeDiff > 0.5
 }
 
 func (rows *RightOfWaySystem) applyYieldBehavior(v *vehicle.Vehicle, distToEnd float64) {
 	if distToEnd < rows.stopDistance {
-		v.Speed = 0
+		targetSpeed := 0.0
+		if v.Speed > targetSpeed {
+			v.Speed = math.Max(0, v.Speed-15.0*0.016)
+		}
 		return
 	}
 
 	if distToEnd < rows.yieldDistance {
-		ratio := distToEnd / rows.yieldDistance
-		targetSpeed := v.Road.MaxSpeed * ratio * 0.3
+		ratio := (distToEnd - rows.stopDistance) / (rows.yieldDistance - rows.stopDistance)
+		targetSpeed := v.Road.MaxSpeed * ratio * 0.4
 		
 		if v.Speed > targetSpeed {
-			v.Speed = math.Max(targetSpeed, 0)
+			v.Speed = math.Max(targetSpeed, v.Speed-10.0*0.016)
 		}
 		return
 	}
 
 	slowdownRatio := (distToEnd - rows.yieldDistance) / (rows.approachDistance - rows.yieldDistance)
-	targetSpeed := v.Road.MaxSpeed * (0.3 + slowdownRatio*0.7)
+	targetSpeed := v.Road.MaxSpeed * (0.4 + slowdownRatio*0.6)
 	
 	if v.Speed > targetSpeed {
-		v.Speed = targetSpeed
+		v.Speed = math.Max(targetSpeed, v.Speed-8.0*0.016)
+	}
+}
+
+func (rows *RightOfWaySystem) applyGracefulPassage(v *vehicle.Vehicle, distToEnd float64) {
+	if distToEnd < rows.stopDistance*2 {
+		targetSpeed := v.Road.MaxSpeed * 0.3
+		if v.Speed < targetSpeed {
+			v.Speed = math.Min(targetSpeed, v.Speed+5.0*0.016)
+		}
 	}
 }
