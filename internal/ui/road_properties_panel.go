@@ -28,6 +28,14 @@ type RoadPropertiesPanel struct {
 	onApply func(maxSpeed, width float64)
 }
 
+func (p *RoadPropertiesPanel) Contains(x, y int) bool {
+	if !p.Visible {
+		return false
+	}
+	fx, fy := float64(x), float64(y)
+	return fx >= p.X && fx <= p.X+p.Width && fy >= p.Y && fy <= p.Y+p.Height
+}
+
 func NewRoadPropertiesPanel(x, y float64) *RoadPropertiesPanel {
 	panel := &RoadPropertiesPanel{
 		X:           x,

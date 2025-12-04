@@ -124,7 +124,10 @@ func (tb *Toolbar) setupUI() {
 			tb.roadPropertiesPanel.Hide()
 		}
 	})
+	
+	tb.inputHandler.SetRoadPropertiesPanel(tb.roadPropertiesPanel)
 }
+
 
 func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 	tb.uiManager.Update(mouseX, mouseY, clicked)

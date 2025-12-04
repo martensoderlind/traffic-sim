@@ -37,9 +37,10 @@ type InputHandler struct {
 	roadDeleteTool   *tools.RoadDeleteTool
 	nodeDeleteTool   *tools.NodeDeleteTool
 	trafficLightTool *tools.TrafficLightTool
+	roadPropTool     *tools.RoadPropertiesTool
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
-	roadPropTool *tools.RoadPropertiesTool
+	roadPropertiesPanel interface{ Contains(x, y int) bool } 
 }
 
 func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
@@ -324,12 +325,19 @@ func (h *InputHandler) handleNodeDeletingInput() {
 
 func (h *InputHandler) handleRoadPropertiesInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if h.roadPropertiesPanel != nil && h.roadPropertiesPanel.Contains(h.mouseX, h.mouseY) {
+			return 
+		}
 		h.roadPropTool.Click(float64(h.mouseX), float64(h.mouseY))
 	}
 	
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.roadPropTool.Cancel()
 	}
+}
+
+func (h *InputHandler) SetRoadPropertiesPanel(panel interface{ Contains(x, y int) bool }) {
+	h.roadPropertiesPanel = panel
 }
 
 func (h *InputHandler) handleTrafficLightInput() {
