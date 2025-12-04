@@ -82,6 +82,8 @@ func (b *Button) SetIcon(img *ebiten.Image, w, h float64) {
 
 func (b *Button) Draw(screen *ebiten.Image) {
 	bgColor := b.bgColor
+	buttonHeight := b.calculateHeight()
+	buttonWidth:= b.calculateWidth()
 	if b.pressed {
 		bgColor = b.pressColor
 	} else if b.hovered {
@@ -92,8 +94,8 @@ func (b *Button) Draw(screen *ebiten.Image) {
 		screen,
 		float32(b.X-b.Padding),
 		float32(b.Y-b.Padding),
-		float32(b.Width+b.Padding*2),
-		float32(b.Height+b.Padding*2),
+		buttonWidth,
+		buttonHeight,
 		bgColor,
 		false,
 	)
@@ -102,8 +104,8 @@ func (b *Button) Draw(screen *ebiten.Image) {
 		screen,
 		float32(b.X-b.Padding),
 		float32(b.Y-b.Padding),
-		float32(b.Width+b.Padding*2),
-		float32(b.Height+b.Padding*2),
+		buttonWidth,
+		buttonHeight,
 		2,
 		b.borderColor,
 		false,
@@ -137,4 +139,11 @@ if b.Icon != nil {
 		Source: getDefaultFontSource(),
 		Size:   14,
 	}, textOp)
+}
+
+func (b *Button) calculateHeight()float32 {
+	return float32(b.Height + b.Padding*2)
+}
+func (b * Button) calculateWidth() float32 {
+	return float32(b.Width + b.Padding*2)
 }

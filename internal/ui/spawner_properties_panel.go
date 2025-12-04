@@ -140,7 +140,6 @@ func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 		MaxVehicles, _:= strconv.Atoi(p.MaxVehiclesInput.GetText())
 		Enabled, _:= strconv.ParseBool(p.EnabledInput.GetText())
 	
-		
 		if MinSpeed <= 0 {
 			MinSpeed = 20.0
 		}
