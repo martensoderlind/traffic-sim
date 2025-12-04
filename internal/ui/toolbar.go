@@ -75,9 +75,6 @@ func (tb *Toolbar) setupUI() {
 	})
 	tb.uiManager.AddButton(tb.despawnBtn)
 	
-	currentX = 10.0
-	btnY += btnHeight + spacing
-	
 	tb.roadDeleteBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Delete Road (X)", func() {
 		tb.inputHandler.SetMode(input.ModeRoadDeleting)
 	})
@@ -106,9 +103,11 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeSpawnPointProperties)
 	})
 	tb.uiManager.AddButton(tb.spawnPointPropBtn)
-	currentX += btnWidth + spacing
 	
-	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
+	currentX = 10.0
+	btnY += btnHeight + spacing
+	
+	tb.bidirToggle = NewButton(10, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
 		tb.inputHandler.ToggleBidirectional()
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
@@ -247,7 +246,6 @@ func (tb *Toolbar) updateModeIndicator() {
 			modeText = "Mode: Edit Spawn point Properties (Selected - Edit in panel)"
 		}
 	}
-	
 	
 	tb.modeIndicator.Text = modeText
 	tb.modeIndicator.SetBackground(bgColor)

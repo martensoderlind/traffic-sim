@@ -14,7 +14,8 @@ type Button struct {
 	Text          string
 	OnClick       func()
 	Padding float64
-	
+	size	 float64
+
 	hovered bool
 	pressed bool
 	
@@ -39,6 +40,7 @@ func NewButton(x, y, width, height float64, text string, onClick func()) *Button
 		Text:        text,
 		OnClick:     onClick,
 		Padding: 8,
+		size:	 14,
 		bgColor:     color.RGBA{60, 60, 70, 255},
 		hoverColor:  color.RGBA{80, 80, 90, 255},
 		pressColor:  color.RGBA{50, 50, 60, 255},
@@ -135,7 +137,7 @@ func (b *Button) Draw(screen *ebiten.Image) {
 
 	text.Draw(screen, b.Text, &text.GoTextFace{
 		Source: getDefaultFontSource(),
-		Size:   14,
+		Size:   b.size,
 	}, textOp)
 }
 
@@ -143,5 +145,6 @@ func (b *Button) calculateHeight()float32 {
 	return float32(b.Height + b.Padding*2)
 }
 func (b * Button) calculateWidth() float32 {
-	return float32(b.Width + b.Padding*2)
+	textWidth := float64(len(b.Text)) * (b.size * 0.6)
+	return float32(textWidth+ b.Padding*2 )
 }
