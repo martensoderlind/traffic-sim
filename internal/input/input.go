@@ -26,6 +26,7 @@ const (
 	ModeNodeDeleting
 	ModeTrafficLight
 	ModeRoadProperties
+	ModeSpawnPointProperties
 )
 
 type InputHandler struct {
@@ -38,9 +39,11 @@ type InputHandler struct {
 	nodeDeleteTool   *tools.NodeDeleteTool
 	trafficLightTool *tools.TrafficLightTool
 	roadPropTool     *tools.RoadPropertiesTool
+	spawnPointPropTool *tools.SpawnPointPropertiesTool
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
 	roadPropertiesPanel interface{ Contains(x, y int) bool } 
+	spawnPointPropertiesPanel interface{ Contains(x, y int) bool } 
 }
 
 func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
@@ -54,6 +57,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
 	trafficLightTool := tools.NewTrafficLightTool(executor, query)
 	roadPropTool := tools.NewRoadPropertiesTool(executor, query)
+	SpawnPointPropTool := tools.NewSpawnPointPropertiesTool(executor, query)
 	simulator := s
 	
 	return &InputHandler{
@@ -66,6 +70,7 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 		nodeDeleteTool:   nodeDeleteTool,
 		trafficLightTool: trafficLightTool,
 		roadPropTool:     roadPropTool,
+		spawnPointPropTool: SpawnPointPropTool,
 		Simulator:        simulator,
 	}
 }
@@ -87,6 +92,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	h.nodeDeleteTool.Cancel()
 	h.trafficLightTool.Cancel()
 	h.roadPropTool.Cancel()
+	h.spawnPointPropTool.Cancel()
 	h.mode = mode
 }
 
@@ -129,6 +135,9 @@ func (h *InputHandler) MousePos() (int, int) {
 func (h *InputHandler) RoadPropTool() *tools.RoadPropertiesTool {
     return h.roadPropTool
 }
+func (h *InputHandler) SpawnPointPropTool() *tools.SpawnPointPropertiesTool {
+    return h.spawnPointPropTool
+}
 
 func (h *InputHandler) Update() {
 	h.mouseX, h.mouseY = ebiten.CursorPosition()
@@ -162,6 +171,14 @@ func (h *InputHandler) handleModeSwitch() {
 		} else {
 			h.mode = ModeNormal
 			h.spawnTool.Cancel()
+		}
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+		if h.mode == ModeNormal {
+			h.mode = ModeSpawnPointProperties
+		} else {
+			h.mode = ModeNormal
+			h.spawnPointPropTool.Cancel()
 		}
 	}
 
@@ -220,6 +237,7 @@ func (h *InputHandler) handleModeSwitch() {
 		h.nodeDeleteTool.Cancel()
 		h.trafficLightTool.Cancel()
 		h.roadPropTool.Cancel()
+		h.spawnPointPropTool.Cancel()
 	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
@@ -264,6 +282,8 @@ func (h *InputHandler) handleToolInput() {
 		h.handleTrafficLightInput()
 	case ModeRoadProperties:
 		h.handleRoadPropertiesInput()
+	case ModeSpawnPointProperties:
+		h.handleSpawnPointPropertiesInput()
 	}
 }
 
@@ -335,9 +355,24 @@ func (h *InputHandler) handleRoadPropertiesInput() {
 		h.roadPropTool.Cancel()
 	}
 }
+func (h *InputHandler) handleSpawnPointPropertiesInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if h.spawnPointPropertiesPanel != nil && h.spawnPointPropertiesPanel.Contains(h.mouseX, h.mouseY) {
+			return 
+		}
+		h.spawnPointPropTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+	
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.spawnPointPropTool.Cancel()
+	}
+}
 
 func (h *InputHandler) SetRoadPropertiesPanel(panel interface{ Contains(x, y int) bool }) {
 	h.roadPropertiesPanel = panel
+}
+func (h *InputHandler) SetSpawnPointPropertiesPanel(panel interface{ Contains(x, y int) bool }) {
+	h.spawnPointPropertiesPanel = panel
 }
 
 func (h *InputHandler) handleTrafficLightInput() {

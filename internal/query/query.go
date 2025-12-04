@@ -86,6 +86,27 @@ func (q *WorldQuery) FindNearestRoad(x, y, maxDistance float64) (*road.Road, flo
 
 	return nearestRoad, nearestX, nearestY
 }
+func (q *WorldQuery) FindNearestSpawnPoint(x, y, maxDistance float64) (*road.SpawnPoint, float64, float64) {
+	q.world.Mu.RLock()
+	defer q.world.Mu.RUnlock()
+
+	var nearestSpawnPoint *road.SpawnPoint
+	var nearestX, nearestY float64
+	minDist := maxDistance
+
+	for _,sp := range q.world.SpawnPoints {
+		dist := math.Sqrt((x-sp.Node.X)*(x-sp.Node.X) + (y-sp.Node.Y)*(y-sp.Node.Y))
+		
+		if dist < minDist {
+			minDist = dist
+			nearestSpawnPoint = sp
+			nearestX = sp.Node.X
+			nearestY = sp.Node.Y
+		}
+	}
+
+	return nearestSpawnPoint, nearestX, nearestY
+}
 
 func (q *WorldQuery) closestPointOnRoad(rd *road.Road, x, y float64) (float64, float64, float64) {
 	x1, y1 := rd.From.X, rd.From.Y

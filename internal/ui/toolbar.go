@@ -24,7 +24,9 @@ type Toolbar struct {
 	trafficLightBtn *Button
 	bidirToggle     *Button
 	roadPropBtn *Button
+	spawnPointPropBtn *Button
     roadPropertiesPanel *RoadPropertiesPanel
+    spawnPointPropertiesPanel *SpawnerPropertiesPanel
 }
 
 func NewToolbar(inputHandler *input.InputHandler) *Toolbar {
@@ -100,6 +102,12 @@ func (tb *Toolbar) setupUI() {
 	tb.uiManager.AddButton(tb.roadPropBtn)
 	currentX += btnWidth + spacing
 	
+	tb.spawnPointPropBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Spawn point Props (Q)", func() {
+		tb.inputHandler.SetMode(input.ModeSpawnPointProperties)
+	})
+	tb.uiManager.AddButton(tb.spawnPointPropBtn)
+	currentX += btnWidth + spacing
+	
 	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
 		tb.inputHandler.ToggleBidirectional()
 	})
@@ -124,8 +132,16 @@ func (tb *Toolbar) setupUI() {
 			tb.roadPropertiesPanel.Hide()
 		}
 	})
+	tb.spawnPointPropertiesPanel = NewSpawnerPropertiesPanel(400, 200)
+	tb.spawnPointPropertiesPanel.SetOnApply(func(Interval,MinSpeed,MaxSpeed float64, MaxVehicles int,Enabled bool) {
+		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
+			tb.inputHandler.SpawnPointPropTool().UpdateSpawnPointProperties(Interval,MinSpeed,MaxSpeed, MaxVehicles ,Enabled)
+			tb.spawnPointPropertiesPanel.Hide()
+		}
+	})
 	
 	tb.inputHandler.SetRoadPropertiesPanel(tb.roadPropertiesPanel)
+	tb.inputHandler.SetSpawnPointPropertiesPanel(tb.spawnPointPropertiesPanel)
 }
 
 
@@ -143,11 +159,19 @@ func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 		} else if selectedRoad == nil {
 			tb.roadPropertiesPanel.Hide()
 		}
+	}else if mode == input.ModeSpawnPointProperties {
+		selectedSpawnPoint := tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint()
+		if selectedSpawnPoint != nil && !tb.roadPropertiesPanel.Visible {
+			tb.spawnPointPropertiesPanel.Show(selectedSpawnPoint.Interval,selectedSpawnPoint.MinSpeed,selectedSpawnPoint.MaxSpeed, selectedSpawnPoint.MaxVehicles,selectedSpawnPoint.Enabled)
+		} else if selectedSpawnPoint == nil {
+			tb.spawnPointPropertiesPanel.Hide()
+		}
 	} else {
 		tb.roadPropertiesPanel.Hide()
 	}
 	
 	tb.roadPropertiesPanel.Update(mouseX, mouseY, clicked)
+	tb.spawnPointPropertiesPanel.Update(mouseX, mouseY, clicked)
 }
 
 func (tb *Toolbar) updateModeIndicator() {
@@ -215,7 +239,14 @@ func (tb *Toolbar) updateModeIndicator() {
 		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
 			modeText = "Mode: Edit Road Properties (Selected - Edit in panel)"
 		}
+	case input.ModeSpawnPointProperties:
+		modeText = "Mode: Edit Spawn Point Properties (Click Spawn Point)"
+		bgColor = color.RGBA{40, 80, 80, 230}
+		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
+			modeText = "Mode: Edit Spawn point Properties (Selected - Edit in panel)"
+		}
 	}
+	
 	
 	tb.modeIndicator.Text = modeText
 	tb.modeIndicator.SetBackground(bgColor)
@@ -307,6 +338,11 @@ func (tb *Toolbar) updateButtonStates() {
 	} else {
 		tb.roadPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
+	if mode == input.ModeSpawnPointProperties {
+		tb.roadPropBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.roadPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {
 		tb.bidirToggle.Text = "Bidir: ON (B)"
@@ -320,6 +356,7 @@ func (tb *Toolbar) updateButtonStates() {
 func (tb *Toolbar) Draw(screen *ebiten.Image) {
 	tb.uiManager.Draw(screen)
 	tb.roadPropertiesPanel.Draw(screen)
+	tb.spawnPointPropertiesPanel.Draw(screen)
 }
 
 func (tb *Toolbar) GetUIManager() *UIManager {
