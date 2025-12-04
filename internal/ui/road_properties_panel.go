@@ -41,7 +41,7 @@ func NewRoadPropertiesPanel(x, y float64) *RoadPropertiesPanel {
 		X:           x,
 		Y:           y,
 		Width:       300,
-		Height:      220,
+		Height:      260,
 		Visible:     false,
 		bgColor:     color.RGBA{40, 40, 50, 240},
 		borderColor: color.RGBA{100, 100, 110, 255},
@@ -71,8 +71,8 @@ func (p *RoadPropertiesPanel) setupUI() {
 	
 	p.widthInput = NewTextInput(p.X+15, p.Y+135, 270, 35, "8.0")
 	
-	p.applyBtn = NewButton(p.X+15, p.Y+180, 125, 30, "Apply", nil)
-	p.closeBtn = NewButton(p.X+160, p.Y+180, 125, 30, "Close", nil)
+	p.applyBtn = NewButton(p.X+22, p.Y+200, 90, 30, "Apply", nil)
+	p.closeBtn = NewButton(p.X+188,p.Y+200, 90, 30, "Close", nil)
 }
 
 func (p *RoadPropertiesPanel) Show(maxSpeed, width float64) {
