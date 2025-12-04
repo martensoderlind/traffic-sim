@@ -2,7 +2,10 @@ module traffic-sim
 
 go 1.25.4
 
-require github.com/hajimehoshi/ebiten/v2 v2.9.4
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.9.4
+	github.com/spf13/viper v1.21.0
+)
 
 require (
 	github.com/ebitengine/gomobile v0.0.0-20250923094054-ea854a63cce1 // indirect
@@ -19,7 +22,6 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/image v0.31.0 // indirect

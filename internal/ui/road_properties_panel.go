@@ -178,7 +178,7 @@ func (ti *TextInput) Update(mouseX, mouseY int, clicked bool) {
 	}
 }
 
-var lastBackspaceTime float64
+var backspaceCooldown int
 
 func (ti *TextInput) handleInput() {
 	inputChars := ebiten.AppendInputChars(nil)
@@ -188,15 +188,17 @@ func (ti *TextInput) handleInput() {
 		}
 	}
 	
-	if ebiten.IsKeyPressed(ebiten.KeyBackspace) {
-		currentTime := float64(ebiten.ActualTPS()) / 60.0
-		if currentTime-lastBackspaceTime > 0.1 {
-			if len(ti.Text) > 0 {
-				ti.Text = ti.Text[:len(ti.Text)-1]
-			}
-			lastBackspaceTime = currentTime
-		}
-	}
+	if backspaceCooldown > 0 {
+        backspaceCooldown--
+    }
+
+    if ebiten.IsKeyPressed(ebiten.KeyBackspace) && backspaceCooldown == 0 {
+        if len(ti.Text) > 0 {
+            ti.Text = ti.Text[:len(ti.Text)-1]
+        }
+        backspaceCooldown = 6
+    }
+
 }
 
 func (ti *TextInput) Draw(screen *ebiten.Image) {
