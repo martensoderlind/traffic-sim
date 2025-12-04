@@ -12,7 +12,8 @@ type TextInput struct {
 	Width, Height float64
 	Text          string
 	Active        bool
-	
+	backspaceCooldown int
+
 	bgColor       color.RGBA
 	activeBgColor color.RGBA
 	borderColor   color.RGBA
@@ -27,6 +28,7 @@ func NewTextInput(x, y, width, height float64, initialText string) *TextInput {
 		Height:        height,
 		Text:          initialText,
 		Active:        false,
+		backspaceCooldown: 0,
 		bgColor:       color.RGBA{30, 30, 40, 255},
 		activeBgColor: color.RGBA{40, 40, 50, 255},
 		borderColor:   color.RGBA{100, 100, 110, 255},
@@ -49,7 +51,6 @@ func (ti *TextInput) Update(mouseX, mouseY int, clicked bool) {
 	}
 }
 
-var backspaceCooldown int
 
 func (ti *TextInput) handleInput() {
 	inputChars := ebiten.AppendInputChars(nil)
@@ -59,17 +60,16 @@ func (ti *TextInput) handleInput() {
 		}
 	}
 	
-	if backspaceCooldown > 0 {
-        backspaceCooldown--
+	if ti.backspaceCooldown > 0 {
+        ti.backspaceCooldown--
     }
 
-    if ebiten.IsKeyPressed(ebiten.KeyBackspace) && backspaceCooldown == 0 {
+    if ebiten.IsKeyPressed(ebiten.KeyBackspace) && ti.backspaceCooldown == 0 {
         if len(ti.Text) > 0 {
             ti.Text = ti.Text[:len(ti.Text)-1]
         }
-        backspaceCooldown = 6
+        ti.backspaceCooldown = 6
     }
-
 }
 
 func (ti *TextInput) Draw(screen *ebiten.Image) {

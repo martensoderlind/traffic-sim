@@ -117,6 +117,7 @@ func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	if !p.Visible {
 		return
 	}
+
 	p.IntervalInput.Update(mouseX, mouseY, clicked)
 	p.MinSpeedInput.Update(mouseX, mouseY, clicked)
 	p.MaxSpeedInput.Update(mouseX, mouseY, clicked)
@@ -135,7 +136,7 @@ func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 		if MinSpeed <= 0 {
 			MinSpeed = 20.0
 		}
-		if MaxSpeed <= 0|| MaxSpeed < MinSpeed ||MaxSpeed> 200 {
+		if MaxSpeed <= 0 || MaxSpeed < MinSpeed ||MaxSpeed> 200 {
 			MaxSpeed = 50.0
 		}
 		if Interval <= 0 {

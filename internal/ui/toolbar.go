@@ -132,6 +132,7 @@ func (tb *Toolbar) setupUI() {
 			tb.roadPropertiesPanel.Hide()
 		}
 	})
+
 	tb.spawnPointPropertiesPanel = NewSpawnerPropertiesPanel(400, 200)
 	tb.spawnPointPropertiesPanel.SetOnApply(func(Interval,MinSpeed,MaxSpeed float64, MaxVehicles int,Enabled bool) {
 		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
@@ -161,7 +162,7 @@ func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 		}
 	}else if mode == input.ModeSpawnPointProperties {
 		selectedSpawnPoint := tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint()
-		if selectedSpawnPoint != nil && !tb.roadPropertiesPanel.Visible {
+		if selectedSpawnPoint != nil && !tb.spawnPointPropertiesPanel.Visible {
 			tb.spawnPointPropertiesPanel.Show(selectedSpawnPoint.Interval,selectedSpawnPoint.MinSpeed,selectedSpawnPoint.MaxSpeed, selectedSpawnPoint.MaxVehicles,selectedSpawnPoint.Enabled)
 		} else if selectedSpawnPoint == nil {
 			tb.spawnPointPropertiesPanel.Hide()
