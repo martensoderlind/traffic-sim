@@ -114,23 +114,21 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	cursorX := b.X + b.Padding
 	cursorY := b.Y + b.Padding
 
-if b.Icon != nil {
-    op := &ebiten.DrawImageOptions{}
+	if b.Icon != nil {
+		op := &ebiten.DrawImageOptions{}
 
-    innerHeight := b.Height - b.Padding*2
-    dy := b.Y + b.Padding + (innerHeight - b.IconHeight) / 2
+		innerHeight := b.Height - b.Padding*2
+		dy := b.Y + b.Padding + (innerHeight - b.IconHeight) / 2
 
-    op.GeoM.Translate(cursorX, dy)
+		op.GeoM.Translate(cursorX, dy)
 
-    w, h := b.Icon.Bounds().Dx(), b.Icon.Bounds().Dy()
-    op.GeoM.Scale(b.IconWidth/float64(w), b.IconHeight/float64(h))
+		w, h := b.Icon.Bounds().Dx(), b.Icon.Bounds().Dy()
+		op.GeoM.Scale(b.IconWidth/float64(w), b.IconHeight/float64(h))
 
-    screen.DrawImage(b.Icon, op)
+		screen.DrawImage(b.Icon, op)
 
-    cursorX += b.IconWidth + 6
-}
-
-
+		cursorX += b.IconWidth + 6
+	}
 	textOp := &text.DrawOptions{}
 	textOp.GeoM.Translate(cursorX, cursorY)
 	textOp.ColorScale.ScaleWithColor(b.textColor)
