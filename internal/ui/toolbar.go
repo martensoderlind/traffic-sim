@@ -43,61 +43,63 @@ func (tb *Toolbar) setupUI() {
 	btnY := 10.0
 	btnWidth := 120.0
 	btnHeight := 35.0
-	spacing := 20.0
+	spacingX := 10.0
+	spacingY:= 25.0
 	currentX := 10.0
 	
 	tb.normalModeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Normal (ESC)", func() {
 		tb.inputHandler.SetMode(input.ModeNormal)
 	})
 	tb.uiManager.AddButton(tb.normalModeBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.normalModeBtn.calculateWidth()) + spacingX
 	
 	tb.roadBuildBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Build Road (R)", func() {
 		tb.inputHandler.SetMode(input.ModeRoadBuilding)
 	})
 	tb.uiManager.AddButton(tb.roadBuildBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.roadBuildBtn.calculateWidth()) + spacingX
 	
 	tb.moveNodeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Move Node (M)", func() {
 		tb.inputHandler.SetMode(input.ModeNodeMoving)
 	})
 	tb.uiManager.AddButton(tb.moveNodeBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.moveNodeBtn.calculateWidth()) + spacingX
 	
 	tb.spawnBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Add Spawn (S)", func() {
 		tb.inputHandler.SetMode(input.ModeSpawning)
 	})
 	tb.uiManager.AddButton(tb.spawnBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.spawnBtn.calculateWidth()) + spacingX
 	
 	tb.despawnBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Add Despawn (D)", func() {
 		tb.inputHandler.SetMode(input.ModeDespawning)
 	})
 	tb.uiManager.AddButton(tb.despawnBtn)
-	
+	currentX += float64(tb.despawnBtn.calculateWidth()) + spacingX
+
 	tb.roadDeleteBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Delete Road (X)", func() {
 		tb.inputHandler.SetMode(input.ModeRoadDeleting)
 	})
 	tb.uiManager.AddButton(tb.roadDeleteBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.roadDeleteBtn.calculateWidth()) + spacingX
 	
 	tb.nodeDeleteBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Delete Node (Del)", func() {
 		tb.inputHandler.SetMode(input.ModeNodeDeleting)
 	})
 	tb.uiManager.AddButton(tb.nodeDeleteBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.nodeDeleteBtn.calculateWidth()) + spacingX
 
 	tb.trafficLightBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Traffic Light (T)", func() {
 		tb.inputHandler.SetMode(input.ModeTrafficLight)
 	})
 	tb.uiManager.AddButton(tb.trafficLightBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.trafficLightBtn.calculateWidth()) + spacingX
 	
 	tb.roadPropBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Road Props (P)", func() {
 		tb.inputHandler.SetMode(input.ModeRoadProperties)
 	})
 	tb.uiManager.AddButton(tb.roadPropBtn)
-	currentX += btnWidth + spacing
+	currentX += float64(tb.roadPropBtn.calculateWidth()) + spacingX
 	
 	tb.spawnPointPropBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Spawn point Props (Q)", func() {
 		tb.inputHandler.SetMode(input.ModeSpawnPointProperties)
@@ -105,7 +107,7 @@ func (tb *Toolbar) setupUI() {
 	tb.uiManager.AddButton(tb.spawnPointPropBtn)
 	
 	currentX = 10.0
-	btnY += btnHeight + spacing
+	btnY += btnHeight + spacingY
 	
 	tb.bidirToggle = NewButton(10, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
 		tb.inputHandler.ToggleBidirectional()
@@ -114,12 +116,12 @@ func (tb *Toolbar) setupUI() {
 	
 	bgColor := color.RGBA{40, 40, 50, 230}
 
-	tb.modeIndicator = NewLabel(9, btnY+btnHeight+spacing, "Mode: Normal")
+	tb.modeIndicator = NewLabel(9, btnY+btnHeight+spacingY, "Mode: Normal")
 	tb.modeIndicator.Size = 14
 	tb.modeIndicator.SetBackground(bgColor)
 	tb.uiManager.AddLabel(tb.modeIndicator)
 
-	tb.simulationState = NewLabel(9, btnY+btnHeight+spacing+39, "Simulation: Running")
+	tb.simulationState = NewLabel(9, btnY+btnHeight+spacingY+39, "Simulation: Running")
 	tb.simulationState.Size = 14
 	tb.simulationState.SetBackground(bgColor)
 	tb.uiManager.AddLabel(tb.simulationState)
