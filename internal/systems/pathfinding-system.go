@@ -64,7 +64,6 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 		x0, y0 = fromRoad.PosAt(fromRoad.Length-toRoad.Width*0.5)
 	}
 	
-	// x0, y0 := fromRoad.PosAt(fromRoad.Length)
 	x3, y3 := toRoad.PosAt(startDist)
 	
 	p0 := geom.Point{X: x0, Y: y0}
