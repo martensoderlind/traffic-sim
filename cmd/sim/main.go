@@ -46,8 +46,24 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return g.renderer.Layout(outsideWidth, outsideHeight)
 }
 
-func main() {
+func (g *Game) replaceWorld(newWorld *world.World) {
+	g.world.Mu.Lock()
+	g.world = newWorld
+	g.world.Mu.Unlock()
+
+	g.simulator = sim.NewSimulator(g.world, 8*time.Millisecond)
 	
+	g.InputHandler.ReplaceWorld(g.world)
+	g.InputHandler.Simulator = g.simulator
+	
+	g.renderer.World = g.world
+	g.renderer.InputHandler = g.InputHandler
+	
+	
+	log.Println("World replaced successfully")
+}
+
+func main() {
 	world := world.New()
 	simulator := sim.NewSimulator(world, 8*time.Millisecond)
 	inputHandler := input.NewInputHandler(world, simulator)
@@ -60,6 +76,8 @@ func main() {
 		world:        world,
 		InputHandler: inputHandler,
 	}
+	
+	inputHandler.SetOnWorldReplaced(game.replaceWorld)
 
 	ebiten.SetWindowSize(1920, 1080)
 	ebiten.SetWindowTitle("Traffic Simulation")

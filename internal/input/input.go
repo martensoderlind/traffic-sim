@@ -1,6 +1,7 @@
 package input
 
 import (
+	"log"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -43,10 +44,13 @@ type InputHandler struct {
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
 	roadPropertiesPanel interface{ Contains(x, y int) bool } 
-	spawnPointPropertiesPanel interface{ Contains(x, y int) bool } 
+	spawnPointPropertiesPanel interface{ Contains(x, y int) bool }
+	world            *world.World
+	executor         *commands.CommandExecutor
+	onWorldReplaced  func(*world.World)
 }
 
-func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
+func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 	executor := commands.NewCommandExecutor(w)
 	query := query.NewWorldQuery(w)
 	roadTool := tools.NewRoadBuildingTool(executor, query)
@@ -72,7 +76,13 @@ func NewInputHandler(w *world.World,s *sim.Simulator) *InputHandler {
 		roadPropTool:     roadPropTool,
 		spawnPointPropTool: SpawnPointPropTool,
 		Simulator:        simulator,
+		world:            w,
+		executor:         executor,
 	}
+}
+
+func (h *InputHandler) SetOnWorldReplaced(callback func(*world.World)) {
+	h.onWorldReplaced = callback
 }
 
 func (h *InputHandler) Mode() Mode {
@@ -135,6 +145,7 @@ func (h *InputHandler) MousePos() (int, int) {
 func (h *InputHandler) RoadPropTool() *tools.RoadPropertiesTool {
     return h.roadPropTool
 }
+
 func (h *InputHandler) SpawnPointPropTool() *tools.SpawnPointPropertiesTool {
     return h.spawnPointPropTool
 }
@@ -144,6 +155,58 @@ func (h *InputHandler) Update() {
 	
 	h.handleModeSwitch()
 	h.handleToolInput()
+	h.handleSaveLoad()
+}
+
+func (h *InputHandler) handleSaveLoad() {
+	if ebiten.IsKeyPressed(ebiten.KeyControl) || ebiten.IsKeyPressed(ebiten.KeyMeta) {
+		if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			h.handleSave()
+		}
+		
+		if inpututil.IsKeyJustPressed(ebiten.KeyO) {
+			h.handleLoad()
+		}
+	}
+}
+
+func (h *InputHandler) handleSave() {
+	cmd := &commands.SaveWorldCommand{}
+	if err := h.executor.Execute(cmd); err != nil {
+		log.Printf("Failed to save world: %v", err)
+	}
+}
+
+func (h *InputHandler) handleLoad() {
+	cmd := &commands.LoadWorldCommand{
+		OnWorldLoaded: func(newWorld *world.World) {
+			if h.onWorldReplaced != nil {
+				h.onWorldReplaced(newWorld)
+			}
+		},
+	}
+	
+	if err := cmd.Execute(h.world); err != nil {
+		log.Printf("Failed to load world: %v", err)
+	}
+}
+
+func (h *InputHandler) ReplaceWorld(newWorld *world.World) {
+	h.world = newWorld
+	h.executor = commands.NewCommandExecutor(newWorld)
+	query := query.NewWorldQuery(newWorld)
+	
+	h.roadTool = tools.NewRoadBuildingTool(h.executor, query)
+	h.moveTool = tools.NewNodeMoveTool(h.executor, query)
+	h.spawnTool = tools.NewSpawnTool(h.executor, query)
+	h.despawnTool = tools.NewDespawnTool(h.executor, query)
+	h.roadDeleteTool = tools.NewRoadDeleteTool(h.executor, query)
+	h.nodeDeleteTool = tools.NewNodeDeleteTool(h.executor, query)
+	h.trafficLightTool = tools.NewTrafficLightTool(h.executor, query)
+	h.roadPropTool = tools.NewRoadPropertiesTool(h.executor, query)
+	h.spawnPointPropTool = tools.NewSpawnPointPropertiesTool(h.executor, query)
+	
+	h.SetMode(ModeNormal)
 }
 
 func (h *InputHandler) handleModeSwitch() {
@@ -165,7 +228,7 @@ func (h *InputHandler) handleModeSwitch() {
 		}
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) && !ebiten.IsKeyPressed(ebiten.KeyControl) && !ebiten.IsKeyPressed(ebiten.KeyMeta) {
 		if h.mode == ModeNormal {
 			h.mode = ModeSpawning
 		} else {
@@ -173,6 +236,7 @@ func (h *InputHandler) handleModeSwitch() {
 			h.spawnTool.Cancel()
 		}
 	}
+	
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		if h.mode == ModeNormal {
 			h.mode = ModeSpawnPointProperties
@@ -259,6 +323,7 @@ func (h *InputHandler) handleModeSwitch() {
 	if h.mode == ModeTrafficLight && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		h.trafficLightTool.Click(float64(h.mouseX), float64(h.mouseY))
 	}
+	
 	if h.mode == ModeNormal && inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		h.Simulator.TogglePause()
 	}
@@ -355,6 +420,7 @@ func (h *InputHandler) handleRoadPropertiesInput() {
 		h.roadPropTool.Cancel()
 	}
 }
+
 func (h *InputHandler) handleSpawnPointPropertiesInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		if h.spawnPointPropertiesPanel != nil && h.spawnPointPropertiesPanel.Contains(h.mouseX, h.mouseY) {
@@ -371,6 +437,7 @@ func (h *InputHandler) handleSpawnPointPropertiesInput() {
 func (h *InputHandler) SetRoadPropertiesPanel(panel interface{ Contains(x, y int) bool }) {
 	h.roadPropertiesPanel = panel
 }
+
 func (h *InputHandler) SetSpawnPointPropertiesPanel(panel interface{ Contains(x, y int) bool }) {
 	h.spawnPointPropertiesPanel = panel
 }

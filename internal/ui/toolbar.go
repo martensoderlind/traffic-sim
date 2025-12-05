@@ -25,6 +25,8 @@ type Toolbar struct {
 	bidirToggle     *Button
 	roadPropBtn *Button
 	spawnPointPropBtn *Button
+	saveBtn         *Button
+	loadBtn         *Button
     roadPropertiesPanel *RoadPropertiesPanel
     spawnPointPropertiesPanel *SpawnerPropertiesPanel
 }
@@ -113,6 +115,14 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.ToggleBidirectional()
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
+	currentX += float64(tb.bidirToggle.calculateWidth()) + spacingX
+	
+	tb.saveBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Save (Ctrl+S)", nil)
+	tb.uiManager.AddButton(tb.saveBtn)
+	currentX += float64(tb.saveBtn.calculateWidth()) + spacingX
+	
+	tb.loadBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Load (Ctrl+O)", nil)
+	tb.uiManager.AddButton(tb.loadBtn)
 	
 	bgColor := color.RGBA{40, 40, 50, 230}
 
@@ -145,7 +155,6 @@ func (tb *Toolbar) setupUI() {
 	tb.inputHandler.SetRoadPropertiesPanel(tb.roadPropertiesPanel)
 	tb.inputHandler.SetSpawnPointPropertiesPanel(tb.spawnPointPropertiesPanel)
 }
-
 
 func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 	tb.uiManager.Update(mouseX, mouseY, clicked)
@@ -339,10 +348,11 @@ func (tb *Toolbar) updateButtonStates() {
 	} else {
 		tb.roadPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
+	
 	if mode == input.ModeSpawnPointProperties {
-		tb.roadPropBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+		tb.spawnPointPropBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
-		tb.roadPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+		tb.spawnPointPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {
