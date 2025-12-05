@@ -185,10 +185,8 @@ func (p *SpawnerPropertiesPanel) calculateHeight() {
 	for _, label := range p.labels {
 		p.Height += label.calculateHeight()+7
 	}
-	fmt.Println("Calculated panel height:", p.Height)
 	for _, input := range p.inputs {
 		p.Height += input.Height + 7
 	}
 	p.Height += p.applyBtn.Height 
-	fmt.Println("Calculated panel height:", p.Height)
 }
