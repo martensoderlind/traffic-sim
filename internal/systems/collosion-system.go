@@ -26,6 +26,10 @@ func (cs *CollisionSystem) Update(w *world.World, dt float64) {
 	roadVehicles := cs.groupVehiclesByRoad(w)
 
 	for _, v := range w.Vehicles {
+		if v.InTransition {
+			continue
+		}
+		
 		vehiclesAhead := roadVehicles[v.Road.ID]
 		
 		nearestAhead := cs.findNearestVehicleAhead(v, vehiclesAhead)
@@ -68,7 +72,9 @@ func (cs *CollisionSystem) groupVehiclesByRoad(w *world.World) map[string][]*veh
 	roadVehicles := make(map[string][]*vehicle.Vehicle)
 	
 	for _, v := range w.Vehicles {
-		roadVehicles[v.Road.ID] = append(roadVehicles[v.Road.ID], v)
+		if !v.InTransition {
+			roadVehicles[v.Road.ID] = append(roadVehicles[v.Road.ID], v)
+		}
 	}
 	
 	return roadVehicles

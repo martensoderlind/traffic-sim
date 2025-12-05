@@ -30,6 +30,10 @@ func (ms *MovementSystem) Update(w *world.World, dt float64) {
 	defer w.Mu.Unlock()
 
 	for _, v := range w.Vehicles {
+		if v.InTransition {
+			continue
+		}
+		
 		targetSpeed := ms.calculateTargetSpeed(w, v)
 		
 		ms.adjustSpeedSmooth(v, targetSpeed, dt)
@@ -58,10 +62,17 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	hasValidExit := ms.hasValidExit(w, v)
 	
 	if hasValidExit {
+		if v.NextRoad != nil && distToEnd < 30.0 {
+			turnSharpness := ms.calculateTurnSharpness(v.Road, v.NextRoad)
+			if turnSharpness > 0.5 {
+				slowdownFactor := 1.0 - (turnSharpness * 0.4)
+				return v.Road.MaxSpeed * slowdownFactor
+			}
+		}
 		return v.Road.MaxSpeed
 	}
 	
-	effectiveLookAhead := math.Min(ms.lookAheadDist, v.Road.Length * 0.4)
+	effectiveLookAhead := math.Min(ms.lookAheadDist, v.Road.Length*0.4)
 	if effectiveLookAhead < 20.0 {
 		effectiveLookAhead = 20.0
 	}
@@ -71,6 +82,23 @@ func (ms *MovementSystem) calculateTargetSpeed(w *world.World, v *vehicle.Vehicl
 	}
 	
 	return ms.calculateApproachSpeed(distToEnd, v.Road.MaxSpeed, effectiveLookAhead)
+}
+
+func (ms *MovementSystem) calculateTurnSharpness(fromRoad, toRoad *road.Road) float64 {
+	dx1 := fromRoad.To.X - fromRoad.From.X
+	dy1 := fromRoad.To.Y - fromRoad.From.Y
+	angle1 := math.Atan2(dy1, dx1)
+	
+	dx2 := toRoad.To.X - toRoad.From.X
+	dy2 := toRoad.To.Y - toRoad.From.Y
+	angle2 := math.Atan2(dy2, dx2)
+	
+	diff := math.Abs(angle2 - angle1)
+	if diff > math.Pi {
+		diff = 2*math.Pi - diff
+	}
+	
+	return diff / math.Pi
 }
 
 func (ms *MovementSystem) hasValidExit(w *world.World, v *vehicle.Vehicle) bool {

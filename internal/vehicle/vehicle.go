@@ -2,6 +2,7 @@ package vehicle
 
 import (
 	"math"
+	"traffic-sim/internal/geom"
 	"traffic-sim/internal/road"
 )
 
@@ -17,6 +18,11 @@ type Vehicle struct {
 	Distance float64
 	Speed    float64
 	Pos      Vec2
+	
+	InTransition      bool
+	TransitionCurve   *geom.BezierCurve
+	TransitionT       float64
+	TransitionSpeed   float64
 }
 
 func (v *Vehicle) Position() Vec2 {
@@ -24,6 +30,11 @@ func (v *Vehicle) Position() Vec2 {
 }
 
 func (v *Vehicle) GetAngle() float64 {
+	if v.InTransition && v.TransitionCurve != nil {
+		tangent := v.TransitionCurve.TangentAt(v.TransitionT)
+		return math.Atan2(tangent.Y, tangent.X) + math.Pi/2
+	}
+	
 	if v.Road == nil {
 		return 0
 	}
@@ -31,5 +42,5 @@ func (v *Vehicle) GetAngle() float64 {
 	dx := v.Road.To.X - v.Road.From.X
 	dy := v.Road.To.Y - v.Road.From.Y
 
-	return math.Atan2(dy, dx)+math.Pi/2
+	return math.Atan2(dy, dx) + math.Pi/2
 }

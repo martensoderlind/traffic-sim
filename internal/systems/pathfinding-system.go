@@ -2,6 +2,7 @@ package systems
 
 import (
 	"math/rand"
+	"traffic-sim/internal/geom"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/vehicle"
 	"traffic-sim/internal/world"
@@ -18,6 +19,11 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 	defer w.Mu.Unlock()
 
 	for _, v := range w.Vehicles {
+		if v.InTransition {
+			ps.updateTransition(v, dt)
+			continue
+		}
+		
 		if v.NextRoad == nil {
 			threshold := v.Road.Length * 0.5
 			if v.Road.Length < 60.0 {
@@ -31,13 +37,7 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 
 		if v.Distance >= v.Road.Length && v.Speed > 0 {
 			if v.NextRoad != nil {
-				v.Road = v.NextRoad
-				v.NextRoad = nil
-				v.Distance = 0
-				
-				x, y := v.Road.PosAt(0)
-				v.Pos.X = x
-				v.Pos.Y = y
+				ps.startTransition(v)
 			} else {
 				v.Speed = 0
 				v.Distance = v.Road.Length
@@ -49,6 +49,83 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 	}
 }
 
+
+func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
+	fromRoad := v.Road
+	toRoad := v.NextRoad
+	
+	intersectionNode := fromRoad.To
+	
+	p0 := geom.Point{X: fromRoad.To.X, Y: fromRoad.To.Y}
+	p3 := geom.Point{X: toRoad.From.X, Y: toRoad.From.Y}
+	
+	dirIn := geom.Point{
+		X: fromRoad.To.X - fromRoad.From.X,
+		Y: fromRoad.To.Y - fromRoad.From.Y,
+	}
+	lenIn := geom.Distance(geom.Point{}, dirIn)
+	if lenIn > 0 {
+		dirIn.X /= lenIn
+		dirIn.Y /= lenIn
+	}
+	
+	dirOut := geom.Point{
+		X: toRoad.To.X - toRoad.From.X,
+		Y: toRoad.To.Y - toRoad.From.Y,
+	}
+	lenOut := geom.Distance(geom.Point{}, dirOut)
+	if lenOut > 0 {
+		dirOut.X /= lenOut
+		dirOut.Y /= lenOut
+	}
+	
+	controlDist := 25.0
+	
+	p1 := geom.Point{
+		X: intersectionNode.X + dirIn.X*controlDist,
+		Y: intersectionNode.Y + dirIn.Y*controlDist,
+	}
+	
+	p2 := geom.Point{
+		X: intersectionNode.X + dirOut.X*controlDist,
+		Y: intersectionNode.Y + dirOut.Y*controlDist,
+	}
+	
+	v.TransitionCurve = geom.NewCubicBezier(p0, p1, p2, p3)
+	v.InTransition = true
+	v.TransitionT = 0
+	v.TransitionSpeed = v.Speed
+}
+
+func (ps *PathfindingSystem) updateTransition(v *vehicle.Vehicle, dt float64) {
+	if v.TransitionCurve == nil {
+		v.InTransition = false
+		return
+	}
+	
+	distanceToTravel := v.Speed * dt
+	tStep := distanceToTravel / v.TransitionCurve.Length
+	
+	v.TransitionT += tStep
+	
+	if v.TransitionT >= 1.0 {
+		v.TransitionT = 1.0
+		v.InTransition = false
+		v.Road = v.NextRoad
+		v.NextRoad = nil
+		v.Distance = 0
+		v.TransitionCurve = nil
+		
+		x, y := v.Road.PosAt(0)
+		v.Pos.X = x
+		v.Pos.Y = y
+	} else {
+		point := v.TransitionCurve.PointAt(v.TransitionT)
+		v.Pos.X = point.X
+		v.Pos.Y = point.Y
+	}
+}
+
 func (ps *PathfindingSystem) findNextRoad(w *world.World, v *vehicle.Vehicle) *road.Road {
 	intersection := w.IntersectionsByNode[v.Road.To.ID]
 	if intersection == nil || len(intersection.Outgoing) == 0 {
@@ -57,7 +134,7 @@ func (ps *PathfindingSystem) findNextRoad(w *world.World, v *vehicle.Vehicle) *r
 
 	available := make([]*road.Road, 0, len(intersection.Outgoing))
 	for _, r := range intersection.Outgoing {
-		if notSameRoad(r,v.Road){
+		if notSameRoad(r, v.Road) {
 			available = append(available, r)
 		}
 	}
@@ -70,5 +147,5 @@ func (ps *PathfindingSystem) findNextRoad(w *world.World, v *vehicle.Vehicle) *r
 }
 
 func notSameRoad(r1, r2 *road.Road) bool {
-    return !(r1.From == r2.To && r1.To == r2.From)
+	return !(r1.From == r2.To && r1.To == r2.From)
 }
