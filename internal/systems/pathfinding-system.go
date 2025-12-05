@@ -57,8 +57,14 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 	if toRoad.Length < 40.0 {
 		startDist = toRoad.Length * 0.3
 	}
+	x0, y0 := 0.0, 0.0
+	if road.IsRightTurn(fromRoad, toRoad) {
+		x0, y0 = fromRoad.PosAt(fromRoad.Length)
+	} else {
+		x0, y0 = fromRoad.PosAt(fromRoad.Length-toRoad.Width*0.5)
+	}
 	
-	x0, y0 := fromRoad.PosAt(fromRoad.Length)
+	// x0, y0 := fromRoad.PosAt(fromRoad.Length)
 	x3, y3 := toRoad.PosAt(startDist)
 	
 	p0 := geom.Point{X: x0, Y: y0}
