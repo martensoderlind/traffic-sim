@@ -79,7 +79,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 		dirOut.Y /= lenOut
 	}
 	
-	controlDist := 25.0
+	controlDist := 15.0
 	
 	p1 := geom.Point{
 		X: intersectionNode.X + dirIn.X*controlDist,
