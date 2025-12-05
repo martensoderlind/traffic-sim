@@ -49,15 +49,20 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 	}
 }
 
-
 func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 	fromRoad := v.Road
 	toRoad := v.NextRoad
 	
-	intersectionNode := fromRoad.To
+	startDist := 20.0
+	if toRoad.Length < 40.0 {
+		startDist = toRoad.Length * 0.3
+	}
 	
-	p0 := geom.Point{X: fromRoad.To.X, Y: fromRoad.To.Y}
-	p3 := geom.Point{X: toRoad.From.X, Y: toRoad.From.Y}
+	x0, y0 := fromRoad.PosAt(fromRoad.Length)
+	x3, y3 := toRoad.PosAt(startDist)
+	
+	p0 := geom.Point{X: x0, Y: y0}
+	p3 := geom.Point{X: x3, Y: y3}
 	
 	dirIn := geom.Point{
 		X: fromRoad.To.X - fromRoad.From.X,
@@ -79,16 +84,16 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 		dirOut.Y /= lenOut
 	}
 	
-	controlDist := 15.0
+	controlDist := 5.0
 	
 	p1 := geom.Point{
-		X: intersectionNode.X + dirIn.X*controlDist,
-		Y: intersectionNode.Y + dirIn.Y*controlDist,
+		X: p0.X + dirIn.X*controlDist,
+		Y: p0.Y + dirIn.Y*controlDist,
 	}
 	
 	p2 := geom.Point{
-		X: intersectionNode.X + dirOut.X*controlDist,
-		Y: intersectionNode.Y + dirOut.Y*controlDist,
+		X: p3.X - dirOut.X*controlDist,
+		Y: p3.Y - dirOut.Y*controlDist,
 	}
 	
 	v.TransitionCurve = geom.NewCubicBezier(p0, p1, p2, p3)
@@ -113,10 +118,16 @@ func (ps *PathfindingSystem) updateTransition(v *vehicle.Vehicle, dt float64) {
 		v.InTransition = false
 		v.Road = v.NextRoad
 		v.NextRoad = nil
-		v.Distance = 0
+		
+		startDist := 20.0
+		if v.Road.Length < 40.0 {
+			startDist = v.Road.Length * 0.3
+		}
+		v.Distance = startDist
+		
 		v.TransitionCurve = nil
 		
-		x, y := v.Road.PosAt(0)
+		x, y := v.Road.PosAt(v.Distance)
 		v.Pos.X = x
 		v.Pos.Y = y
 	} else {
