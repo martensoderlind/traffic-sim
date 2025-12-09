@@ -11,11 +11,13 @@ import (
 
 type RoadRenderer struct{
 	shadowOffset float64
+	nodeRadius   float64
 }
 
 func NewRoadRenderer() *RoadRenderer {
 	return &RoadRenderer{
 		shadowOffset:  3.0,
+		nodeRadius:   8.0,
 	}
 }
 
@@ -45,15 +47,14 @@ func (rr *RoadRenderer) renderSingleRoad(screen *ebiten.Image, rd *road.Road) {
 		offset = rd.Width * 0.5
 	}
 
-	x1 += perpX * offset
-	y1 += perpY * offset
-	x2 += perpX * offset
-	y2 += perpY * offset
+	baseX1 := x1 + perpX * offset
+	baseY1 := y1 + perpY * offset
+	baseX2 := x2 + perpX * offset
+	baseY2 := y2 + perpY * offset
 
-	rr.drawRoadShadow(screen, x1, y1, x2, y2, rd.Width, perpX, perpY)
-	rr.drawRoadBase(screen, x1, y1, x2, y2, rd.Width, perpX, perpY)
-	// rr.drawRoadMarkings(screen, x1, y1, x2, y2, rd.Width, rd.Length, perpX, perpY)
-	rr.drawRoadEdges(screen, x1, y1, x2, y2, rd.Width, perpX, perpY)
+	rr.drawRoadShadow(screen, baseX1, baseY1, baseX2, baseY2, rd.Width, perpX, perpY)
+	rr.drawRoadBase(screen, baseX1, baseY1, baseX2, baseY2, rd.Width, perpX, perpY)
+	rr.drawRoadEdges(screen, baseX1, baseY1, baseX2, baseY2, rd.Width, perpX, perpY)
 }
 
 func (rr *RoadRenderer) RenderNodes(screen *ebiten.Image, nodes []*road.Node) {
@@ -61,13 +62,13 @@ func (rr *RoadRenderer) RenderNodes(screen *ebiten.Image, nodes []*road.Node) {
 		x := float32(node.X)
 		y := float32(node.Y)
 		
-		vector.FillCircle(screen, x+1, y+1, 8, color.RGBA{0, 0, 0, 80}, false)
+		vector.FillCircle(screen, x+1, y+1, float32(rr.nodeRadius), color.RGBA{0, 0, 0, 80}, false)
 		
-		vector.FillCircle(screen, x, y, 8, color.RGBA{80, 80, 90, 255}, false)
+		vector.FillCircle(screen, x, y, float32(rr.nodeRadius), color.RGBA{80, 80, 90, 255}, false)
 		
-		vector.FillCircle(screen, x, y, 8, color.RGBA{45, 45, 50, 255}, false)
+		vector.FillCircle(screen, x, y, float32(rr.nodeRadius), color.RGBA{45, 45, 50, 255}, false)
 		
-		vector.StrokeCircle(screen, x, y, 8, 1.5, color.RGBA{234, 231, 228, 255}, false)
+		vector.StrokeCircle(screen, x, y, float32(rr.nodeRadius), 1.5, color.RGBA{234, 231, 228, 255}, false)
 	}
 }
 
