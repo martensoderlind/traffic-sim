@@ -46,8 +46,7 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 
 	screen.Fill(color.RGBA{20, 20, 30, 255})
 
-	r.roadRenderer.RenderNodes(screen, r.World.Nodes)
-	r.roadRenderer.RenderRoads(screen, r.World.Roads)
+	r.roadRenderer.RenderRoads(screen, r.World.Roads,r.World.Nodes)
 	r.markerRenderer.RenderSpawnPoints(screen, r.World.SpawnPoints)
 	r.markerRenderer.RenderDespawnPoints(screen, r.World.DespawnPoints)
 	r.vehicleRenderer.RenderVehicles(screen, r.World.Vehicles)
