@@ -25,6 +25,7 @@ type Toolbar struct {
 	bidirToggle     *Button
 	roadPropBtn *Button
 	spawnPointPropBtn *Button
+	roadCurveBtn *Button
 	saveBtn         *Button
 	loadBtn         *Button
     roadPropertiesPanel *RoadPropertiesPanel
@@ -107,6 +108,12 @@ func (tb *Toolbar) setupUI() {
 		tb.inputHandler.SetMode(input.ModeSpawnPointProperties)
 	})
 	tb.uiManager.AddButton(tb.spawnPointPropBtn)
+	currentX += float64(tb.spawnPointPropBtn.calculateWidth()) + spacingX
+	
+	tb.roadCurveBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Curve Road (C)", func() {
+		tb.inputHandler.SetMode(input.ModeRoadCurving)
+	})
+	tb.uiManager.AddButton(tb.roadCurveBtn)
 	
 	currentX = 15.0
 	btnY += btnHeight + spacingY
@@ -266,6 +273,9 @@ func (tb *Toolbar) updateModeIndicator() {
 		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
 			modeText = "Mode: Edit Spawn point Properties (Selected - Edit in panel)"
 		}
+	case input.ModeRoadCurving:
+		modeText = tb.inputHandler.RoadCurveTool().GetStatusMessage()
+		bgColor = color.RGBA{75, 60, 90, 240}
 	}
 	
 	tb.modeIndicator.Text = modeText
@@ -363,6 +373,12 @@ func (tb *Toolbar) updateButtonStates() {
 		tb.spawnPointPropBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
 	} else {
 		tb.spawnPointPropBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
+	}
+	
+	if mode == input.ModeRoadCurving {
+		tb.roadCurveBtn.SetColors(activeColor, activeHover, activePress, textColor, borderColor)
+	} else {
+		tb.roadCurveBtn.SetColors(normalColor, normalHover, normalPress, textColor, borderColor)
 	}
 	
 	if tb.inputHandler.RoadTool().IsBidirectional() {

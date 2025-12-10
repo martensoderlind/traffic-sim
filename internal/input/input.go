@@ -28,6 +28,7 @@ const (
 	ModeTrafficLight
 	ModeRoadProperties
 	ModeSpawnPointProperties
+	ModeRoadCurving
 )
 
 type InputHandler struct {
@@ -41,6 +42,7 @@ type InputHandler struct {
 	trafficLightTool *tools.TrafficLightTool
 	roadPropTool     *tools.RoadPropertiesTool
 	spawnPointPropTool *tools.SpawnPointPropertiesTool
+	roadCurveTool    *tools.RoadCurveTool
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
 	roadPropertiesPanel interface{ Contains(x, y int) bool } 
@@ -62,6 +64,7 @@ func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 	trafficLightTool := tools.NewTrafficLightTool(executor, query)
 	roadPropTool := tools.NewRoadPropertiesTool(executor, query)
 	SpawnPointPropTool := tools.NewSpawnPointPropertiesTool(executor, query)
+	roadCurveTool := tools.NewRoadCurveTool(executor, query)
 	simulator := s
 	
 	return &InputHandler{
@@ -75,6 +78,7 @@ func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 		trafficLightTool: trafficLightTool,
 		roadPropTool:     roadPropTool,
 		spawnPointPropTool: SpawnPointPropTool,
+		roadCurveTool:    roadCurveTool,
 		Simulator:        simulator,
 		world:            w,
 		executor:         executor,
@@ -103,6 +107,7 @@ func (h *InputHandler) SetMode(mode Mode) {
 	h.trafficLightTool.Cancel()
 	h.roadPropTool.Cancel()
 	h.spawnPointPropTool.Cancel()
+	h.roadCurveTool.Cancel()
 	h.mode = mode
 }
 
@@ -148,6 +153,10 @@ func (h *InputHandler) RoadPropTool() *tools.RoadPropertiesTool {
 
 func (h *InputHandler) SpawnPointPropTool() *tools.SpawnPointPropertiesTool {
     return h.spawnPointPropTool
+}
+
+func (h *InputHandler) RoadCurveTool() *tools.RoadCurveTool {
+    return h.roadCurveTool
 }
 
 func (h *InputHandler) Update() {
@@ -205,6 +214,7 @@ func (h *InputHandler) ReplaceWorld(newWorld *world.World) {
 	h.trafficLightTool = tools.NewTrafficLightTool(h.executor, query)
 	h.roadPropTool = tools.NewRoadPropertiesTool(h.executor, query)
 	h.spawnPointPropTool = tools.NewSpawnPointPropertiesTool(h.executor, query)
+	h.roadCurveTool = tools.NewRoadCurveTool(h.executor, query)
 	
 	h.SetMode(ModeNormal)
 }
@@ -290,6 +300,15 @@ func (h *InputHandler) handleModeSwitch() {
 			h.roadPropTool.Cancel()
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		if h.mode == ModeNormal {
+			h.mode = ModeRoadCurving
+		} else {
+			h.mode = ModeNormal
+			h.roadCurveTool.Cancel()
+		}
+	}
 	
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		h.mode = ModeNormal
@@ -349,6 +368,8 @@ func (h *InputHandler) handleToolInput() {
 		h.handleRoadPropertiesInput()
 	case ModeSpawnPointProperties:
 		h.handleSpawnPointPropertiesInput()
+	case ModeRoadCurving:
+		h.handleRoadCurvingInput()
 	}
 }
 
@@ -462,6 +483,16 @@ func (h *InputHandler) handleTrafficLightInput() {
 
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
 		h.trafficLightTool.Cancel()
+	}
+}
+
+func (h *InputHandler) handleRoadCurvingInput() {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		h.roadCurveTool.Click(float64(h.mouseX), float64(h.mouseY))
+	}
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight) {
+		h.roadCurveTool.Cancel()
 	}
 }
 

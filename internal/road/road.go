@@ -8,6 +8,15 @@ type Node struct{
 	Y float64
 }
 
+type RoadCurve struct {
+	ControlP1 Point 
+	ControlP2 Point 
+}
+
+type Point struct {
+	X, Y float64
+}
+
 type Road struct {
 	ID string
 	From *Node
@@ -16,6 +25,7 @@ type Road struct {
 	Length float64
 	Width float64
 	ReverseRoad *Road
+	Curve *RoadCurve
 }
 
 func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
@@ -50,8 +60,22 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
     if t < 0 {
         t = 0
     }
-    x := r.From.X + t*(r.To.X-r.From.X)
-    y := r.From.Y + t*(r.To.Y-r.From.Y)
+    
+    var x, y float64
+    
+    if r.Curve != nil {
+        p0 := Point{X: r.From.X, Y: r.From.Y}
+        p1 := r.Curve.ControlP1
+        p2 := r.Curve.ControlP2
+        p3 := Point{X: r.To.X, Y: r.To.Y}
+        
+        pt := cubicBezierPoint(p0, p1, p2, p3, t)
+        x = pt.X
+        y = pt.Y
+    } else {
+        x = r.From.X + t*(r.To.X-r.From.X)
+        y = r.From.Y + t*(r.To.Y-r.From.Y)
+    }
     
     if r.ReverseRoad != nil {
         dx := r.To.X - r.From.X
@@ -70,4 +94,17 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
     }
     
     return x, y
+}
+
+func cubicBezierPoint(p0, p1, p2, p3 Point, t float64) Point {
+	mt := 1 - t
+	mt2 := mt * mt
+	mt3 := mt2 * mt
+	t2 := t * t
+	t3 := t2 * t
+
+	return Point{
+		X: mt3*p0.X + 3*mt2*t*p1.X + 3*mt*t2*p2.X + t3*p3.X,
+		Y: mt3*p0.Y + 3*mt2*t*p1.Y + 3*mt*t2*p2.Y + t3*p3.Y,
+	}
 }
