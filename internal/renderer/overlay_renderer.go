@@ -35,6 +35,8 @@ func (or *OverlayRenderer) RenderToolOverlay(screen *ebiten.Image, inputHandler 
 		or.renderTrafficLightOverlay(screen, inputHandler)
 	case input.ModeRoadProperties:
 		or.renderRoadPropertiesOverlay(screen, inputHandler)
+	case input.ModeSpawnPointProperties:
+		or.renderSpawnPointPropertiesOverlay(screen, inputHandler)
 	}
 }
 
@@ -290,3 +292,15 @@ func (or *OverlayRenderer) renderRoadPropertiesOverlay(screen *ebiten.Image, inp
 		vector.StrokeLine(screen, x1, y1, x2, y2, float32(selectedRoad.Width+6), color.RGBA{255, 255, 100, 255}, false)
 	}
 }
+func (or *OverlayRenderer) renderSpawnPointPropertiesOverlay(screen *ebiten.Image, inputHandler *input.InputHandler) {
+	mouseX, mouseY := inputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	nodeDeleteTool := inputHandler.NodeDeleteTool()
+	hoverNode := nodeDeleteTool.GetHoverNode(mx, my)
+
+	if hoverNode != nil {
+		vector.StrokeCircle(screen, float32(hoverNode.X), float32(hoverNode.Y), 15, 3, color.RGBA{100, 200, 255, 200}, false)
+		vector.FillCircle(screen, float32(hoverNode.X), float32(hoverNode.Y), 12, color.RGBA{100, 200, 255, 200}, false)
+	}}
