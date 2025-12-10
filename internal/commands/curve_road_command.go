@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"math"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
@@ -45,7 +46,8 @@ func (c *CurveRoadCommand) Execute(w *world.World) error {
 		toTangent = toDir
 	}
 
-	const baseMultiplier = 0.8
+	baseMultiplier := c.calculateBaseMultiplier(c.Road)
+	fmt.Println("basemultiplier:",baseMultiplier)
 	dot := fromTangent.X*toTangent.X + fromTangent.Y*toTangent.Y
 	if dot > 1 {
 		dot = 1
@@ -56,8 +58,8 @@ func (c *CurveRoadCommand) Execute(w *world.World) error {
 	angle := math.Acos(dot)
 	angleFactor := 0.25 + 0.75*(angle/math.Pi)
 	distance := c.Road.Length * baseMultiplier * angleFactor
-	if distance < 60 {
-		distance = 60
+	if distance < 30 {
+		distance = 30
 	}
 	if distance > 800 {
 		distance = 800
@@ -138,4 +140,20 @@ func (c *CurveRoadCommand) getOutgoingDirection(r *road.Road, node *road.Node) (
 	}
 
 	return dx, dy
+}
+//should probably be updated to better match curve severity
+func (c *CurveRoadCommand) calculateBaseMultiplier(r *road.Road) float64 {
+	const k = 0.001
+	x:= r.Length     
+   if x < 1 {
+		x = 1
+	}
+	if x > 500 {
+		x = 500
+	}
+
+	num := math.Exp(k*(x-1)) - 1
+	den := math.Exp(k*499) - 1
+
+	return num / den
 }
