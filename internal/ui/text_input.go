@@ -30,7 +30,7 @@ func NewTextInput(x, y, width, height float64, initialText string) *TextInput {
 		Active:        false,
 		backspaceCooldown: 0,
 		bgColor:       color.RGBA{30, 30, 40, 255},
-		activeBgColor: color.RGBA{40, 40, 50, 255},
+		activeBgColor: color.RGBA{35, 35, 45, 255},
 		borderColor:   color.RGBA{100, 100, 110, 255},
 		textColor:     color.RGBA{220, 220, 220, 255},
 	}
@@ -79,7 +79,6 @@ func (ti *TextInput) Draw(screen *ebiten.Image) {
 	}
 	
 	vector.FillRect(screen, float32(ti.X), float32(ti.Y), float32(ti.Width), float32(ti.Height), bgColor, false)
-	vector.StrokeRect(screen, float32(ti.X), float32(ti.Y), float32(ti.Width), float32(ti.Height), 2, ti.borderColor, false)
 	
 	displayText := ti.Text
 	if ti.Active && len(displayText) < 20 {
