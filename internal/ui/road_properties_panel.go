@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type RoadPropertiesPanel struct {
@@ -124,10 +123,16 @@ func (p *RoadPropertiesPanel) Draw(screen *ebiten.Image) {
 	if !p.Visible {
 		return
 	}
-
-	vector.FillRect(screen, float32(p.X+p.shadowOffset), float32(p.Y+p.shadowOffset),float32(p.Width),float32(p.Height), p.shadowColor, true)
-	vector.FillRect(screen, float32(p.X), float32(p.Y), float32(p.Width), float32(p.Height), p.bgColor, false)
-	vector.StrokeRect(screen, float32(p.X), float32(p.Y), float32(p.Width), float32(p.Height), 2, p.borderColor, false)
+	NewRect(
+		float32(p.X+p.shadowOffset), float32(p.Y+p.shadowOffset),float32(p.Width),float32(p.Height), 13,p.shadowColor,
+		).draw(screen)
+	NewRect(
+		float32(p.X),
+		float32(p.Y),
+		float32(p.Width),float32(p.Height),
+		10,
+		p.bgColor,
+		).draw(screen)
 	
 	for _, label := range p.labels {
 		label.Draw(screen)
