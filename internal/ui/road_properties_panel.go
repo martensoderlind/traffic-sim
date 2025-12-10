@@ -11,12 +11,13 @@ import (
 
 type RoadPropertiesPanel struct {
 	X, Y          float64
-	Width, Height float64
+	Width, Height, shadowOffset float64
 	Visible       bool
 	
 	bgColor     color.RGBA
 	borderColor color.RGBA
 	textColor   color.RGBA
+	shadowColor color.RGBA
 	
 	labels      []*Label
 	speedInput  *TextInput
@@ -41,10 +42,12 @@ func NewRoadPropertiesPanel(x, y float64) *RoadPropertiesPanel {
 		Y:           y,
 		Width:       300,
 		Height:      260,
+		shadowOffset: 3,
 		Visible:     false,
 		bgColor:     color.RGBA{40, 40, 50, 240},
 		borderColor: color.RGBA{100, 100, 110, 255},
 		textColor:   color.RGBA{220, 220, 220, 255},
+		shadowColor: color.RGBA{0, 0, 0, 80},
 		labels:      make([]*Label, 0),
 	}
 	
@@ -121,7 +124,8 @@ func (p *RoadPropertiesPanel) Draw(screen *ebiten.Image) {
 	if !p.Visible {
 		return
 	}
-	
+
+	vector.FillRect(screen, float32(p.X+p.shadowOffset), float32(p.Y+p.shadowOffset),float32(p.Width),float32(p.Height), p.shadowColor, true)
 	vector.FillRect(screen, float32(p.X), float32(p.Y), float32(p.Width), float32(p.Height), p.bgColor, false)
 	vector.StrokeRect(screen, float32(p.X), float32(p.Y), float32(p.Width), float32(p.Height), 2, p.borderColor, false)
 	
