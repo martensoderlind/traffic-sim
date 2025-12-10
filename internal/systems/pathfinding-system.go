@@ -8,6 +8,11 @@ import (
 	"traffic-sim/internal/world"
 )
 
+const(
+	curveRadius = 7.0
+	startPointOffset = 12
+)
+
 type PathfindingSystem struct{}
 
 func NewPathfindingSystem() *PathfindingSystem {
@@ -35,7 +40,7 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 			}
 		}
 
-		if v.Distance >= v.Road.Length-12 && v.Speed > 0 {
+		if v.Distance >= v.Road.Length-startPointOffset && v.Speed > 0 {
 			if v.NextRoad != nil {
 				ps.startTransition(v)
 			} else {
@@ -57,7 +62,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 	if toRoad.Length < 40.0 {
 		startDist = toRoad.Length * 0.3
 	}
-	x0, y0 := fromRoad.PosAt(fromRoad.Length-12)
+	x0, y0 := fromRoad.PosAt(fromRoad.Length-startPointOffset)
 	x3, y3 := toRoad.PosAt(startDist)
 	
 	p0 := geom.Point{X: x0, Y: y0}
@@ -83,7 +88,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 		dirOut.Y /= lenOut
 	}
 	
-	controlDist := 7.0
+	controlDist := curveRadius
 	
 	p1 := geom.Point{
 		X: p0.X + dirIn.X*controlDist,
