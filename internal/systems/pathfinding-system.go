@@ -35,7 +35,7 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 			}
 		}
 
-		if v.Distance >= v.Road.Length && v.Speed > 0 {
+		if v.Distance >= v.Road.Length-12 && v.Speed > 0 {
 			if v.NextRoad != nil {
 				ps.startTransition(v)
 			} else {
@@ -57,13 +57,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 	if toRoad.Length < 40.0 {
 		startDist = toRoad.Length * 0.3
 	}
-	x0, y0 := 0.0, 0.0
-	if road.IsRightTurn(fromRoad, toRoad) {
-		x0, y0 = fromRoad.PosAt(fromRoad.Length)
-	} else {
-		x0, y0 = fromRoad.PosAt(fromRoad.Length-toRoad.Width*0.5)
-	}
-	
+	x0, y0 := fromRoad.PosAt(fromRoad.Length-12)
 	x3, y3 := toRoad.PosAt(startDist)
 	
 	p0 := geom.Point{X: x0, Y: y0}
@@ -89,7 +83,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 		dirOut.Y /= lenOut
 	}
 	
-	controlDist := 5.0
+	controlDist := 7.0
 	
 	p1 := geom.Point{
 		X: p0.X + dirIn.X*controlDist,

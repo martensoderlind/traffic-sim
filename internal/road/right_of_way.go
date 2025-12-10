@@ -124,7 +124,7 @@ func IsRightTurn(fromRoad, toRoad *Road) bool {
 		angleDiff -= 2 * math.Pi
 	}
 	
-	return angleDiff > -math.Pi/2 && angleDiff < 0
+	return angleDiff < 0 && angleDiff > -math.Pi
 }
 
 func IsLeftTurn(fromRoad, toRoad *Road) bool {
