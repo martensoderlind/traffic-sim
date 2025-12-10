@@ -5,7 +5,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type Button struct {
@@ -92,26 +91,14 @@ func (b *Button) Draw(screen *ebiten.Image) {
 		bgColor = b.hoverColor
 	}
 	
-	vector.FillRect(
-		screen,
+	NewRect(
 		float32(b.X-b.Padding),
 		float32(b.Y-b.Padding),
 		buttonWidth,
 		buttonHeight,
+		6,
 		bgColor,
-		false,
-	)
-
-	vector.StrokeRect(
-		screen,
-		float32(b.X-b.Padding),
-		float32(b.Y-b.Padding),
-		buttonWidth,
-		buttonHeight,
-		2,
-		b.borderColor,
-		false,
-	)
+		).draw(screen)
 
 	cursorX := b.X + b.Padding
 	cursorY := b.Y + b.Padding
