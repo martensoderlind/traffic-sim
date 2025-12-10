@@ -47,7 +47,7 @@ func (tb *Toolbar) setupUI() {
 	btnHeight := 35.0
 	spacingX := 10.0
 	spacingY:= 25.0
-	currentX := 10.0
+	currentX := 15.0
 	
 	tb.normalModeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Normal (ESC)", func() {
 		tb.inputHandler.SetMode(input.ModeNormal)
@@ -108,10 +108,10 @@ func (tb *Toolbar) setupUI() {
 	})
 	tb.uiManager.AddButton(tb.spawnPointPropBtn)
 	
-	currentX = 10.0
+	currentX = 15.0
 	btnY += btnHeight + spacingY
 	
-	tb.bidirToggle = NewButton(10, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
+	tb.bidirToggle = NewButton(currentX, btnY, btnWidth, btnHeight, "Bidir: ON (B)", func() {
 		tb.inputHandler.ToggleBidirectional()
 	})
 	tb.uiManager.AddButton(tb.bidirToggle)
@@ -123,20 +123,21 @@ func (tb *Toolbar) setupUI() {
 	
 	tb.loadBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Load (Ctrl+O)", nil)
 	tb.uiManager.AddButton(tb.loadBtn)
-	
-	bgColor := color.RGBA{40, 40, 50, 230}
-
-	tb.modeIndicator = NewLabel(9, btnY+btnHeight+spacingY, "Mode: Normal")
-	tb.modeIndicator.Size = 14
-	tb.modeIndicator.SetBackground(bgColor)
+	btnY += btnHeight + spacingY
+	tb.modeIndicator = NewLabel(18, btnY+3, "Mode: Normal")
+	tb.modeIndicator.Size = 13
+	tb.modeIndicator.Color = color.RGBA{240, 240, 245, 255}
+	tb.modeIndicator.SetBackground(color.RGBA{45, 50, 65, 240})
 	tb.uiManager.AddLabel(tb.modeIndicator)
+	btnY += 27 + spacingY
 
-	tb.simulationState = NewLabel(9, btnY+btnHeight+spacingY+39, "Simulation: Running")
-	tb.simulationState.Size = 14
-	tb.simulationState.SetBackground(bgColor)
+	tb.simulationState = NewLabel(18, btnY, "Simulation: Running")
+	tb.simulationState.Size = 13
+	tb.simulationState.Color = color.RGBA{240, 240, 245, 255}
+	tb.simulationState.SetBackground(color.RGBA{45, 55, 45, 240})
 	tb.uiManager.AddLabel(tb.simulationState)
 	
-	tb.roadPropertiesPanel = NewRoadPropertiesPanel(400, 200)
+	tb.roadPropertiesPanel = NewRoadPropertiesPanel(1600, 200)
 	tb.roadPropertiesPanel.SetOnApply(func(maxSpeed, width float64) {
 		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
 			tb.inputHandler.RoadPropTool().UpdateRoadProperties(maxSpeed, width)
@@ -144,7 +145,7 @@ func (tb *Toolbar) setupUI() {
 		}
 	})
 
-	tb.spawnPointPropertiesPanel = NewSpawnerPropertiesPanel(400, 200)
+	tb.spawnPointPropertiesPanel = NewSpawnerPropertiesPanel(1600, 200)
 	tb.spawnPointPropertiesPanel.SetOnApply(func(Interval,MinSpeed,MaxSpeed float64, MaxVehicles int,Enabled bool) {
 		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
 			tb.inputHandler.SpawnPointPropTool().UpdateSpawnPointProperties(Interval,MinSpeed,MaxSpeed, MaxVehicles ,Enabled)
@@ -154,6 +155,15 @@ func (tb *Toolbar) setupUI() {
 	
 	tb.inputHandler.SetRoadPropertiesPanel(tb.roadPropertiesPanel)
 	tb.inputHandler.SetSpawnPointPropertiesPanel(tb.spawnPointPropertiesPanel)
+}
+
+func (tb *Toolbar) UpdatePanelPositions(screenWidth, screenHeight int) {
+	panelMargin := 20.0
+	panelX := float64(screenWidth) - tb.roadPropertiesPanel.Width - panelMargin
+	panelY := 200.0
+	
+	tb.roadPropertiesPanel.SetPosition(panelX, panelY)
+	tb.spawnPointPropertiesPanel.SetPosition(panelX, panelY)
 }
 
 func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
@@ -194,22 +204,22 @@ func (tb *Toolbar) updateModeIndicator() {
 	switch mode {
 	case input.ModeNormal:
 		modeText = "Mode: Normal"
-		bgColor = color.RGBA{40, 40, 50, 230}
+		bgColor = color.RGBA{45, 50, 65, 240}
 	case input.ModeRoadBuilding:
 		modeText = "Mode: Build Road"
-		bgColor = color.RGBA{60, 80, 40, 230}
+		bgColor = color.RGBA{65, 90, 50, 240}
 		if tb.inputHandler.RoadTool().GetSelectedNode() != nil {
 			modeText = "Mode: Build Road (Node Selected)"
 		}
 	case input.ModeNodeMoving:
 		modeText = "Mode: Move Node"
-		bgColor = color.RGBA{80, 40, 80, 230}
+		bgColor = color.RGBA{90, 60, 90, 240}
 		if tb.inputHandler.MoveTool().IsDragging() {
 			modeText = "Mode: Move Node (Dragging)"
 		}
 	case input.ModeSpawning:
 		modeText = "Mode: Add Spawn Point"
-		bgColor = color.RGBA{40, 80, 60, 230}
+		bgColor = color.RGBA{50, 90, 75, 240}
 		if tb.inputHandler.SpawnTool().GetSelectedNode() != nil {
 			if tb.inputHandler.SpawnTool().GetSelectedRoad() != nil {
 				modeText = "Mode: Add Spawn (Road Selected - Click to Confirm)"
@@ -219,7 +229,7 @@ func (tb *Toolbar) updateModeIndicator() {
 		}
 	case input.ModeDespawning:
 		modeText = "Mode: Add Despawn Point"
-		bgColor = color.RGBA{80, 40, 40, 230}
+		bgColor = color.RGBA{90, 55, 55, 240}
 		if tb.inputHandler.DespawnTool().GetSelectedNode() != nil {
 			if tb.inputHandler.DespawnTool().GetSelectedRoad() != nil {
 				modeText = "Mode: Add Despawn (Road Selected - Click to Confirm)"
@@ -229,13 +239,13 @@ func (tb *Toolbar) updateModeIndicator() {
 		}
 	case input.ModeRoadDeleting:
 		modeText = "Mode: Delete Road (Click on road)"
-		bgColor = color.RGBA{80, 20, 20, 230}
+		bgColor = color.RGBA{95, 45, 45, 240}
 	case input.ModeNodeDeleting:
 		modeText = "Mode: Delete Node (Click on node - deletes all connected roads)"
-		bgColor = color.RGBA{80, 20, 20, 230}
+		bgColor = color.RGBA{95, 45, 45, 240}
 	case input.ModeTrafficLight:
 		modeText = "Mode: Traffic Light - Click node, then click roads (Space to confirm)"
-		bgColor = color.RGBA{80, 80, 20, 230}
+		bgColor = color.RGBA{95, 95, 40, 240}
 		if tb.inputHandler.TrafficLightTool().GetSelectedNode() != nil {
 			selectedRoads := tb.inputHandler.TrafficLightTool().GetSelectedRoads()
 			if len(selectedRoads) > 0 {
@@ -246,13 +256,13 @@ func (tb *Toolbar) updateModeIndicator() {
 		}
 	case input.ModeRoadProperties:
 		modeText = "Mode: Edit Road Properties (Click road)"
-		bgColor = color.RGBA{40, 80, 80, 230}
+		bgColor = color.RGBA{50, 90, 95, 240}
 		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
 			modeText = "Mode: Edit Road Properties (Selected - Edit in panel)"
 		}
 	case input.ModeSpawnPointProperties:
 		modeText = "Mode: Edit Spawn Point Properties (Click Spawn Point)"
-		bgColor = color.RGBA{40, 80, 80, 230}
+		bgColor = color.RGBA{50, 90, 95, 240}
 		if tb.inputHandler.SpawnPointPropTool().GetSelectedSpawnPoint() != nil {
 			modeText = "Mode: Edit Spawn point Properties (Selected - Edit in panel)"
 		}
@@ -271,10 +281,10 @@ func (tb *Toolbar) updateSimulationStatus() {
 	switch mode {
 	case true:
 		modeText = "Simulation: Paused"
-		bgColor = color.RGBA{40, 40, 50, 230}
+		bgColor = color.RGBA{80, 50, 50, 240}
 	case false:
 		modeText = "Simulation: Running"
-		bgColor = color.RGBA{60, 80, 40, 230}
+		bgColor = color.RGBA{45, 55, 45, 240}
 	}
 	
 	tb.simulationState.Text = modeText

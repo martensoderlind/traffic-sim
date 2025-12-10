@@ -16,6 +16,8 @@ type Label struct {
 	Size      float64
 	BgColor   *color.RGBA
 	Padding   float64
+	BorderRadius float64
+	HasBorder bool
 }
 
 func NewLabel(x, y float64, text string) *Label {
@@ -25,8 +27,10 @@ func NewLabel(x, y float64, text string) *Label {
 		Text:    text,
 		Color:   color.RGBA{220, 220, 220, 255},
 		Size:    14,
-		Padding: 8,
+		Padding: 12,
 		height: 0,
+		BorderRadius: 6,
+		HasBorder: false,
 	}
 }
 
@@ -39,26 +43,41 @@ func (l *Label) Draw(screen *ebiten.Image) {
 		textWidth := float64(len(l.Text)) * (l.Size * 0.6)
 		l.height = l.calculateHeight()
 		
-		vector.FillRect(
-			screen,
-			float32(l.X-l.Padding),
-			float32(l.Y-l.Padding),
+		// Draw shadow
+		shadowColor := color.RGBA{0, 0, 0, 60}
+		shadowOffset := float32(2)
+		NewRect(
+			float32(l.X-l.Padding)+shadowOffset,
+			float32(l.Y-l.Padding)+shadowOffset,
 			float32(textWidth+l.Padding*2),
 			float32(l.height),
-			*l.BgColor,
-			false,
-		)
+			float32(l.BorderRadius),
+			shadowColor,
+		).draw(screen)
 		
-		vector.StrokeRect(
-			screen,
+		// Draw rounded rectangle background
+		NewRect(
 			float32(l.X-l.Padding),
 			float32(l.Y-l.Padding),
 			float32(textWidth+l.Padding*2),
 			float32(l.height),
-			1,
-			color.RGBA{100, 100, 110, 255},
-			false,
-		)
+			float32(l.BorderRadius),
+			*l.BgColor,
+		).draw(screen)
+		
+		// Draw border if enabled
+		if l.HasBorder {
+			vector.StrokeRect(
+				screen,
+				float32(l.X-l.Padding),
+				float32(l.Y-l.Padding),
+				float32(textWidth+l.Padding*2),
+				float32(l.height),
+				1.5,
+				color.RGBA{150, 150, 160, 200},
+				false,
+			)
+		}
 	}
 	
 	op := &text.DrawOptions{}
