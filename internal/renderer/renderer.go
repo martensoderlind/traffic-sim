@@ -58,5 +58,6 @@ func (r *Renderer) Draw(screen *ebiten.Image) {
 func (r *Renderer) Layout(w, h int) (int, int) {
 	r.screenWidth = w
 	r.screenHeight = h
+	r.Toolbar.UpdatePanelPositions(w, h)
 	return w, h
 }

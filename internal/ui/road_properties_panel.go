@@ -90,6 +90,40 @@ func (p *RoadPropertiesPanel) SetOnApply(callback func(maxSpeed, width float64))
 	p.onApply = callback
 }
 
+func (p *RoadPropertiesPanel) SetPosition(x, y float64) {
+	p.X = x
+	p.Y = y
+	p.updateUIPositions()
+}
+
+func (p *RoadPropertiesPanel) updateUIPositions() {
+	for i, label := range p.labels {
+		if i == 0 {
+			label.X = p.X + 15
+			label.Y = p.Y + 15
+		} else if i == 1 {
+			label.X = p.X + 15
+			label.Y = p.Y + 50
+		} else if i == 2 {
+			label.X = p.X + 15
+			label.Y = p.Y + 115
+		}
+	}
+	
+	p.speedInput.X = p.X + 15
+	p.speedInput.Y = p.Y + 70
+	
+	p.widthInput.X = p.X + 15
+	p.widthInput.Y = p.Y + 135
+	
+	
+	p.applyBtn.X = p.X + 22
+	p.applyBtn.Y = p.Y + 200
+	
+	p.closeBtn.X = p.X + 188
+	p.closeBtn.Y = p.Y + 200
+}
+
 func (p *RoadPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	if !p.Visible {
 		return

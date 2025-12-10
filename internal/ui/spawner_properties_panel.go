@@ -129,6 +129,35 @@ func (p *SpawnerPropertiesPanel) SetOnApply(callback func(Interval,MinSpeed,MaxS
 	p.onApply = callback
 }
 
+func (p *SpawnerPropertiesPanel) SetPosition(x, y float64) {
+	p.X = x
+	p.Y = y
+	p.updateUIPositions()
+}
+
+func (p *SpawnerPropertiesPanel) updateUIPositions() {
+	yOffset := 15.0
+	
+	for _, label := range p.labels {
+		label.X = p.X + 15
+		label.Y = p.Y + yOffset
+		yOffset += 35
+	}
+	
+	yOffset = 70.0
+	for _, input := range p.inputs {
+		input.X = p.X + 15
+		input.Y = p.Y + yOffset
+		yOffset += 50
+	}
+	
+	p.applyBtn.X = p.X + 140
+	p.applyBtn.Y = p.Y + 420
+	
+	p.closeBtn.X = p.X + 225
+	p.closeBtn.Y = p.Y + 420
+}
+
 func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	if !p.Visible {
 		return
