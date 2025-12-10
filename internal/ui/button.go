@@ -131,7 +131,7 @@ func (b *Button) Draw(screen *ebiten.Image) {
 func (b *Button) calculateHeight()float32 {
 	return float32(b.Height + b.Padding*2)
 }
-func (b * Button) calculateWidth() float32 {
+func (b *Button) calculateWidth() float32 {
 	textWidth := float64(len(b.Text)) * (b.size * 0.6)
 	return float32(textWidth+ b.Padding*2 )
 }

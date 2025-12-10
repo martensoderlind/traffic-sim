@@ -28,6 +28,8 @@ type SpawnerPropertiesPanel struct {
 
 	applyBtn    *Button
 	closeBtn    *Button
+
+	btnWidth, btnHeight float64
 	
 	onApply func(Interval,MinSpeed,MaxSpeed float64, MaxVehicles int,Enabled bool)
 }
@@ -53,6 +55,8 @@ func NewSpawnerPropertiesPanel(x, y float64) *SpawnerPropertiesPanel {
 		textColor:   color.RGBA{220, 220, 220, 255},
 		shadowColor: color.RGBA{0, 0, 0, 80},
 		labels:      make([]*Label, 0),
+		btnWidth: 120.0,
+		btnHeight: 28.0,
 	}
 	
 	panel.setupUI()
@@ -100,9 +104,11 @@ func (p *SpawnerPropertiesPanel) setupUI() {
 	p.EnabledInput = NewTextInput(p.X+15, p.Y+350, 270, 35, "true")
 	p.inputs=append(p.inputs, p.EnabledInput)
 
-	p.applyBtn = NewButton(p.X+22, p.Y+420, 90, 30, "Apply", nil)
-	p.closeBtn = NewButton(p.X+188,p.Y+420, 90, 30, "Close", nil)
-
+	p.applyBtn = NewButton(p.X+140, p.Y+420, p.btnWidth, p.btnHeight, "Apply ", nil)
+	p.closeBtn = NewButton(p.X+225,p.Y+420,p.btnWidth, p.btnHeight, "Close ", func() {
+	})
+	// p.normalModeBtn = NewButton(p.X+90, p.Y+420, p.btnWidth, p.btnHeight, "Normal (ESC)", func() {
+	// })
 	p.calculateHeight()
 }
 
