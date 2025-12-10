@@ -58,7 +58,7 @@ func (b *Button) SetColors(bg, hover, press, text, border color.RGBA) {
 
 func (b *Button) Contains(x, y int) bool {
 	fx, fy := float64(x), float64(y)
-	return fx >= b.X && fx <= b.X+b.Width && fy >= b.Y && fy <= b.Y+b.Height
+	return fx >= b.X-b.Padding && fx <= b.X+b.Width+b.Padding && fy >= b.Y-b.Padding && fy <= b.Y+b.Height+b.Padding
 }
 
 func (b *Button) Update(mouseX, mouseY int, clicked bool) {
