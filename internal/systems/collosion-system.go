@@ -116,32 +116,6 @@ func (cs *CollisionSystem) findNearestVehicleFromStart(vehicles []*vehicle.Vehic
 	return nearest
 }
 
-func (cs *CollisionSystem) findSafeStartDistanceOnRoad(vehicles []*vehicle.Vehicle, roadLength float64, desiredStartDist float64) float64 {
-	sorted := make([]*vehicle.Vehicle, 0, len(vehicles))
-	for _, v := range vehicles {
-		sorted = append(sorted, v)
-	}
-	
-	for i := 1; i < len(sorted); i++ {
-		for j := i; j > 0 && sorted[j].Distance < sorted[j-1].Distance; j-- {
-			sorted[j], sorted[j-1] = sorted[j-1], sorted[j]
-		}
-	}
-	
-	if len(sorted) == 0 {
-		return desiredStartDist
-	}
-	
-	lastVehicleDist := sorted[len(sorted)-1].Distance
-	safeStartDist := lastVehicleDist + cs.safeDistance + 10.0
-	
-	if safeStartDist < desiredStartDist {
-		safeStartDist = desiredStartDist
-	}
-	
-	return safeStartDist
-}
-
 func (cs *CollisionSystem) calculateSafeSpeed(distToVehicle, vehicleAheadSpeed float64) float64 {
 	ratio := distToVehicle / cs.anticipationDist
 	
