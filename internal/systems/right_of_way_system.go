@@ -177,6 +177,17 @@ func (rows *RightOfWaySystem) shouldVehicleYield(w *world.World, v *vehicle.Vehi
 	}
 
 	for _, conflicting := range conflictingVehicles {
+		vIsTurning := !road.IsMinorDirectionChange(v.Road, v.NextRoad)
+		conflictingIsTurning := !road.IsMinorDirectionChange(conflicting.Road, conflicting.NextRoad)
+		
+		if vIsTurning && !conflictingIsTurning {
+			return true
+		}
+		
+		if !vIsTurning && conflictingIsTurning {
+			continue
+		}
+
 		if rows.hasHigherPriority(v, conflicting, rule) {
 			continue
 		}
@@ -212,12 +223,24 @@ func (rows *RightOfWaySystem) findConflictingVehicles(w *world.World, v *vehicle
 			continue
 		}
 
-		otherIntersection := w.IntersectionsByNode[other.Road.To.ID]
+		var otherIntersection *road.Intersection
+		if other.InTransition {
+			otherIntersection = w.IntersectionsByNode[other.NextRoad.To.ID]
+		} else {
+			otherIntersection = w.IntersectionsByNode[other.Road.To.ID]
+		}
+		
 		if otherIntersection == nil || otherIntersection.ID != intersection.ID {
 			continue
 		}
 
-		distToEnd := other.Road.Length - other.Distance
+		var distToEnd float64
+		if other.InTransition {
+			distToEnd = 5.0
+		} else {
+			distToEnd = other.Road.Length - other.Distance
+		}
+		
 		if distToEnd > rows.approachDistance {
 			continue
 		}

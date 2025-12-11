@@ -143,6 +143,23 @@ func IsLeftTurn(fromRoad, toRoad *Road) bool {
 	return angleDiff > 0 && angleDiff < math.Pi
 }
 
+func IsMinorDirectionChange(fromRoad, toRoad *Road) bool {
+	angleFrom := CalculateRoadAngle(fromRoad)
+	angleTo := CalculateRoadAngle(toRoad)
+	
+	angleDiff := angleTo - angleFrom
+	
+	for angleDiff < -math.Pi {
+		angleDiff += 2 * math.Pi
+	}
+	for angleDiff > math.Pi {
+		angleDiff -= 2 * math.Pi
+	}
+	
+	threshold := 25.0 * math.Pi / 180.0
+	return math.Abs(angleDiff) < threshold
+}
+
 func IsStraight(fromRoad, toRoad *Road) bool {
 	angleFrom := CalculateRoadAngle(fromRoad)
 	angleTo := CalculateRoadAngle(toRoad)

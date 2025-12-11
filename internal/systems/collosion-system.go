@@ -27,6 +27,7 @@ func (cs *CollisionSystem) Update(w *world.World, dt float64) {
 
 	for _, v := range w.Vehicles {
 		if v.InTransition {
+			cs.applyCollisionAvoidanceForTransition(v, w, roadVehicles, dt)
 			continue
 		}
 		
@@ -115,6 +116,32 @@ func (cs *CollisionSystem) findNearestVehicleFromStart(vehicles []*vehicle.Vehic
 	return nearest
 }
 
+func (cs *CollisionSystem) findSafeStartDistanceOnRoad(vehicles []*vehicle.Vehicle, roadLength float64, desiredStartDist float64) float64 {
+	sorted := make([]*vehicle.Vehicle, 0, len(vehicles))
+	for _, v := range vehicles {
+		sorted = append(sorted, v)
+	}
+	
+	for i := 1; i < len(sorted); i++ {
+		for j := i; j > 0 && sorted[j].Distance < sorted[j-1].Distance; j-- {
+			sorted[j], sorted[j-1] = sorted[j-1], sorted[j]
+		}
+	}
+	
+	if len(sorted) == 0 {
+		return desiredStartDist
+	}
+	
+	lastVehicleDist := sorted[len(sorted)-1].Distance
+	safeStartDist := lastVehicleDist + cs.safeDistance + 10.0
+	
+	if safeStartDist < desiredStartDist {
+		safeStartDist = desiredStartDist
+	}
+	
+	return safeStartDist
+}
+
 func (cs *CollisionSystem) calculateSafeSpeed(distToVehicle, vehicleAheadSpeed float64) float64 {
 	ratio := distToVehicle / cs.anticipationDist
 	
@@ -133,6 +160,57 @@ func (cs *CollisionSystem) adjustSpeedForCollision(v *vehicle.Vehicle, targetSpe
 		}
 		if v.Speed < 0 {
 			v.Speed = 0
+		}
+	}
+}
+
+func (cs *CollisionSystem) applyCollisionAvoidanceForTransition(v *vehicle.Vehicle, w *world.World, roadVehicles map[string][]*vehicle.Vehicle, dt float64) {
+	if v.NextRoad == nil {
+		return
+	}
+	
+	nextRoadVehicles := roadVehicles[v.NextRoad.ID]
+	
+	var nearestOnNext *vehicle.Vehicle
+	var minDist float64 = 1000000.0
+	
+	for _, other := range nextRoadVehicles {
+		if other.ID == v.ID {
+			continue
+		}
+		dist := other.Distance
+		if dist < minDist {
+			minDist = dist
+			nearestOnNext = other
+		}
+	}
+	
+	if nearestOnNext != nil {
+		transitionEndDist := 25.0
+		if v.NextRoad.Length < 50.0 {
+			transitionEndDist = v.NextRoad.Length * 0.3
+		}
+		
+		distToVehicle := nearestOnNext.Distance - transitionEndDist
+		
+		if distToVehicle < cs.safeDistance+15.0 {
+			targetSpeed := cs.calculateSafeSpeed(distToVehicle, nearestOnNext.Speed)
+			cs.adjustSpeedForCollision(v, targetSpeed, dt)
+		}
+	}
+	
+	currentRoadVehicles := roadVehicles[v.Road.ID]
+	for _, other := range currentRoadVehicles {
+		if other.ID == v.ID {
+			continue
+		}
+		
+		if other.Distance > v.Distance {
+			distToVehicle := other.Distance - v.Distance
+			if distToVehicle < cs.anticipationDist {
+				targetSpeed := cs.calculateSafeSpeed(distToVehicle, other.Speed)
+				cs.adjustSpeedForCollision(v, targetSpeed, dt)
+			}
 		}
 	}
 }
