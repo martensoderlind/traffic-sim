@@ -37,6 +37,8 @@ func (or *OverlayRenderer) RenderToolOverlay(screen *ebiten.Image, inputHandler 
 		or.renderRoadPropertiesOverlay(screen, inputHandler)
 	case input.ModeSpawnPointProperties:
 		or.renderSpawnPointPropertiesOverlay(screen, inputHandler)
+	case input.ModeRoadCurving:
+		or.renderRoadCurvingOverlay(screen, inputHandler)
 	}
 }
 
@@ -303,4 +305,71 @@ func (or *OverlayRenderer) renderSpawnPointPropertiesOverlay(screen *ebiten.Imag
 	if hoverNode != nil {
 		vector.StrokeCircle(screen, float32(hoverNode.X), float32(hoverNode.Y), 15, 3, color.RGBA{100, 200, 255, 200}, false)
 		vector.FillCircle(screen, float32(hoverNode.X), float32(hoverNode.Y), 12, color.RGBA{100, 200, 255, 200}, false)
-	}}
+	}
+}
+
+func (or *OverlayRenderer) renderRoadCurvingOverlay(screen *ebiten.Image, inputHandler *input.InputHandler) {
+	mouseX, mouseY := inputHandler.MousePos()
+	mx := float64(mouseX)
+	my := float64(mouseY)
+
+	curveTool := inputHandler.RoadCurveTool()
+	stage := curveTool.GetStage()
+	hoverRoad := curveTool.GetHoverRoad(mx, my)
+
+	if hoverRoad != nil {
+		x1 := float32(hoverRoad.From.X)
+		y1 := float32(hoverRoad.From.Y)
+		x2 := float32(hoverRoad.To.X)
+		y2 := float32(hoverRoad.To.Y)
+
+		vector.StrokeLine(screen, x1, y1, x2, y2, float32(hoverRoad.Width+4), color.RGBA{100, 200, 255, 200}, false)
+	}
+
+	if stage >= 1 {
+		selectedRoad := curveTool.GetSelectedRoad()
+		if selectedRoad != nil {
+			x1 := float32(selectedRoad.From.X)
+			y1 := float32(selectedRoad.From.Y)
+			x2 := float32(selectedRoad.To.X)
+			y2 := float32(selectedRoad.To.Y)
+
+			vector.StrokeLine(screen, x1, y1, x2, y2, float32(selectedRoad.Width+6), color.RGBA{255, 255, 100, 255}, false)
+		}
+	}
+
+	if stage >= 2 {
+		incomingRoad := curveTool.GetIncomingRoad()
+		if incomingRoad != nil {
+			x1 := float32(incomingRoad.From.X)
+			y1 := float32(incomingRoad.From.Y)
+			x2 := float32(incomingRoad.To.X)
+			y2 := float32(incomingRoad.To.Y)
+
+			vector.StrokeLine(screen, x1, y1, x2, y2, float32(incomingRoad.Width+6), color.RGBA{100, 255, 100, 255}, false)
+		}
+	}
+
+	if stage >= 2 {
+		if hoverRoad != nil {
+			x1 := float32(hoverRoad.From.X)
+			y1 := float32(hoverRoad.From.Y)
+			x2 := float32(hoverRoad.To.X)
+			y2 := float32(hoverRoad.To.Y)
+
+			vector.StrokeLine(screen, x1, y1, x2, y2, float32(hoverRoad.Width+4), color.RGBA{255, 150, 100, 200}, false)
+		}
+
+		if stage >= 3 {
+			outgoingRoad := curveTool.GetOutgoingRoad()
+			if outgoingRoad != nil {
+				x1 := float32(outgoingRoad.From.X)
+				y1 := float32(outgoingRoad.From.Y)
+				x2 := float32(outgoingRoad.To.X)
+				y2 := float32(outgoingRoad.To.Y)
+
+				vector.StrokeLine(screen, x1, y1, x2, y2, float32(outgoingRoad.Width+6), color.RGBA{255, 100, 100, 255}, false)
+			}
+		}
+	}
+}
