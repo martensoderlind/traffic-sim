@@ -54,6 +54,15 @@ func (t *NodeMoveTool) EndDrag() {
 	t.draggedNode = nil
 }
 
+func (t *NodeMoveTool) Cancel() {
+	t.EndDrag()
+}
+
+func (t *NodeMoveTool) Click(mouseX, mouseY float64) error {
+	t.StartDrag(mouseX, mouseY)
+	return nil
+}
+
 func (t *NodeMoveTool) IsDragging() bool {
 	return t.draggedNode != nil
 }

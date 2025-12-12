@@ -43,6 +43,8 @@ type InputHandler struct {
 	roadPropTool     *tools.RoadPropertiesTool
 	spawnPointPropTool *tools.SpawnPointPropertiesTool
 	roadCurveTool    *tools.RoadCurveTool
+	currentTool      tools.Tool
+	currentDragTool  tools.DragTool
 	mouseX, mouseY   int
 	Simulator 	     *sim.Simulator
 	roadPropertiesPanel interface{ Contains(x, y int) bool } 
@@ -89,16 +91,40 @@ func (h *InputHandler) SetMode(mode Mode) {
 		return
 	}
 	
-	h.roadTool.Cancel()
-	h.moveTool.EndDrag()
-	h.spawnTool.Cancel()
-	h.despawnTool.Cancel()
-	h.roadDeleteTool.Cancel()
-	h.nodeDeleteTool.Cancel()
-	h.trafficLightTool.Cancel()
-	h.roadPropTool.Cancel()
-	h.spawnPointPropTool.Cancel()
-	h.roadCurveTool.Cancel()
+	if h.currentTool != nil {
+		h.currentTool.Cancel()
+	}
+	if h.currentDragTool != nil {
+		h.currentDragTool.EndDrag()
+	}
+	
+	h.currentTool = nil
+	h.currentDragTool = nil
+	
+	switch mode {
+	case ModeRoadBuilding:
+		h.currentTool = h.roadTool
+	case ModeNodeMoving:
+		h.currentDragTool = h.moveTool
+		h.currentTool = h.moveTool
+	case ModeSpawning:
+		h.currentTool = h.spawnTool
+	case ModeDespawning:
+		h.currentTool = h.despawnTool
+	case ModeRoadDeleting:
+		h.currentTool = h.roadDeleteTool
+	case ModeNodeDeleting:
+		h.currentTool = h.nodeDeleteTool
+	case ModeTrafficLight:
+		h.currentTool = h.trafficLightTool
+	case ModeRoadProperties:
+		h.currentTool = h.roadPropTool
+	case ModeSpawnPointProperties:
+		h.currentTool = h.spawnPointPropTool
+	case ModeRoadCurving:
+		h.currentTool = h.roadCurveTool
+	}
+	
 	h.mode = mode
 }
 
