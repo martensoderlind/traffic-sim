@@ -108,6 +108,25 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
     return x, y
 }
 
+func CalculateLoopRoadOffsets(dragX, dragY, roadWidth float64) (Point, Point) {
+	const defaultOffsetFactor = 0.75
+	
+	offsetLen := roadWidth * defaultOffsetFactor
+	if offsetLen < 6.0 {
+		offsetLen = 6.0
+	}
+
+	mag := dragX*dragX + dragY*dragY
+	if mag > 1e-6 {
+		invMag := 1.0 / math.Sqrt(mag)
+		nx := dragX * invMag
+		ny := dragY * invMag
+		return Point{X: nx * offsetLen, Y: ny * offsetLen}, Point{X: -nx * offsetLen, Y: -ny * offsetLen}
+	}
+
+	return Point{X: offsetLen, Y: 0}, Point{X: -offsetLen, Y: 0}
+}
+
 func cubicBezierPoint(p0, p1, p2, p3 Point, t float64) Point {
 	mt := 1 - t
 	mt2 := mt * mt

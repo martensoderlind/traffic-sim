@@ -27,13 +27,7 @@ func (c *CreateRoadCommand) ExecuteUnlocked(w *world.World) error {
 		newRoad.EndOffset = c.EndOffset
 		newRoad.UpdateLength()
 	} else if c.From == c.To {
-		offsetLen := newRoad.Width * 0.75
-		if offsetLen < 6.0 {
-			offsetLen = 6.0
-		}
-
-		newRoad.StartOffset = road.Point{X: offsetLen, Y: 0}
-		newRoad.EndOffset = road.Point{X: -offsetLen, Y: 0}
+		newRoad.StartOffset, newRoad.EndOffset = road.CalculateLoopRoadOffsets(0, 0, newRoad.Width)
 		newRoad.UpdateLength()
 	}
 

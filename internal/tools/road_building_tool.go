@@ -2,7 +2,6 @@ package tools
 
 import (
 	"fmt"
-	"math"
 	"traffic-sim/internal/commands"
 	"traffic-sim/internal/query"
 	"traffic-sim/internal/road"
@@ -18,7 +17,6 @@ type RoadBuildingTool struct {
 	maxSnapDist  float64
 	minNodeDist  float64
 	roadSnapDist float64
-	// mouse position where the selection (first click) happened
 	startMouseX float64
 	startMouseY float64
 }
@@ -120,39 +118,17 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 		return nil
 	}
 
-	// If user clicked the same node again, allow creating a loop road anchored
-	// to the same node. Use the drag vector (from first click to now) to
-	// determine offsets. If the drag is negligible, fallback to defaults in
-	// the CreateRoadCommand.
 	if t.selectedNode == clickedNode {
-		// compute drag vector
 		dx := mouseX - t.startMouseX
 		dy := mouseY - t.startMouseY
-		mag := dx*dx + dy*dy
 
-		var startOff, endOff road.Point
-
-		if mag > 1e-6 {
-			// normalize
-			inv := 1.0 / (math.Sqrt(mag))
-			nx := dx * inv
-			ny := dy * inv
-
-			// length proportional to intended width (approx)
-			offsetLen := 8.0 * 0.75
-			if offsetLen < 6.0 {
-				offsetLen = 6.0
-			}
-
-			startOff = road.Point{X: nx * offsetLen, Y: ny * offsetLen}
-			endOff = road.Point{X: -nx * offsetLen, Y: -ny * offsetLen}
-		}
+		startOff, endOff := road.CalculateLoopRoadOffsets(dx, dy, 8.0)
 
 		cmd := &commands.CreateRoadCommand{
-			From:       clickedNode,
-			To:         clickedNode,
-			MaxSpeed:   40.0,
-			Width:      8.0,
+			From:        clickedNode,
+			To:          clickedNode,
+			MaxSpeed:    40.0,
+			Width:       8.0,
 			StartOffset: startOff,
 			EndOffset:   endOff,
 		}
@@ -161,7 +137,6 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 			return err
 		}
 
-		// For loop roads we create a single road; clear selection.
 		t.selectedNode = nil
 		return nil
 	}
