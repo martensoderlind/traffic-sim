@@ -54,34 +54,25 @@ type InputHandler struct {
 
 func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 	executor := commands.NewCommandExecutor(w)
-	query := query.NewWorldQuery(w)
-	roadTool := tools.NewRoadBuildingTool(executor, query)
-	moveTool := tools.NewNodeMoveTool(executor, query)
-	spawnTool := tools.NewSpawnTool(executor, query)
-	despawnTool := tools.NewDespawnTool(executor, query)
-	roadDeleteTool := tools.NewRoadDeleteTool(executor, query)
-	nodeDeleteTool := tools.NewNodeDeleteTool(executor, query)
-	trafficLightTool := tools.NewTrafficLightTool(executor, query)
-	roadPropTool := tools.NewRoadPropertiesTool(executor, query)
-	SpawnPointPropTool := tools.NewSpawnPointPropertiesTool(executor, query)
-	roadCurveTool := tools.NewRoadCurveTool(executor, query)
-	simulator := s
+	q := query.NewWorldQuery(w)
+	factory := tools.NewToolFactory(executor, q)
+	toolSet := factory.CreateAll()
 	
 	return &InputHandler{
-		mode:             ModeNormal,
-		roadTool:         roadTool,
-		moveTool:         moveTool,
-		spawnTool:        spawnTool,
-		despawnTool:      despawnTool,
-		roadDeleteTool:   roadDeleteTool,
-		nodeDeleteTool:   nodeDeleteTool,
-		trafficLightTool: trafficLightTool,
-		roadPropTool:     roadPropTool,
-		spawnPointPropTool: SpawnPointPropTool,
-		roadCurveTool:    roadCurveTool,
-		Simulator:        simulator,
-		world:            w,
-		executor:         executor,
+		mode:               ModeNormal,
+		roadTool:           toolSet.RoadBuilding,
+		moveTool:           toolSet.NodeMoving,
+		spawnTool:          toolSet.Spawning,
+		despawnTool:        toolSet.Despawning,
+		roadDeleteTool:     toolSet.RoadDeleting,
+		nodeDeleteTool:     toolSet.NodeDeleting,
+		trafficLightTool:   toolSet.TrafficLight,
+		roadPropTool:       toolSet.RoadProperties,
+		spawnPointPropTool: toolSet.SpawnPointProperties,
+		roadCurveTool:      toolSet.RoadCurving,
+		Simulator:          s,
+		world:              w,
+		executor:           executor,
 	}
 }
 
@@ -203,18 +194,20 @@ func (h *InputHandler) handleLoad() {
 func (h *InputHandler) ReplaceWorld(newWorld *world.World) {
 	h.world = newWorld
 	h.executor = commands.NewCommandExecutor(newWorld)
-	query := query.NewWorldQuery(newWorld)
+	q := query.NewWorldQuery(newWorld)
+	factory := tools.NewToolFactory(h.executor, q)
+	toolSet := factory.CreateAll()
 	
-	h.roadTool = tools.NewRoadBuildingTool(h.executor, query)
-	h.moveTool = tools.NewNodeMoveTool(h.executor, query)
-	h.spawnTool = tools.NewSpawnTool(h.executor, query)
-	h.despawnTool = tools.NewDespawnTool(h.executor, query)
-	h.roadDeleteTool = tools.NewRoadDeleteTool(h.executor, query)
-	h.nodeDeleteTool = tools.NewNodeDeleteTool(h.executor, query)
-	h.trafficLightTool = tools.NewTrafficLightTool(h.executor, query)
-	h.roadPropTool = tools.NewRoadPropertiesTool(h.executor, query)
-	h.spawnPointPropTool = tools.NewSpawnPointPropertiesTool(h.executor, query)
-	h.roadCurveTool = tools.NewRoadCurveTool(h.executor, query)
+	h.roadTool = toolSet.RoadBuilding
+	h.moveTool = toolSet.NodeMoving
+	h.spawnTool = toolSet.Spawning
+	h.despawnTool = toolSet.Despawning
+	h.roadDeleteTool = toolSet.RoadDeleting
+	h.nodeDeleteTool = toolSet.NodeDeleting
+	h.trafficLightTool = toolSet.TrafficLight
+	h.roadPropTool = toolSet.RoadProperties
+	h.spawnPointPropTool = toolSet.SpawnPointProperties
+	h.roadCurveTool = toolSet.RoadCurving
 	
 	h.SetMode(ModeNormal)
 }
