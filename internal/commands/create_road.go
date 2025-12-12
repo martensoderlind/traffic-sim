@@ -10,6 +10,9 @@ type CreateRoadCommand struct {
 	From, To *road.Node
 	MaxSpeed float64
 	Width    float64
+	// Optional local offsets applied to anchors (in node-local coordinates)
+	StartOffset road.Point
+	EndOffset   road.Point
 }
 
 func (c *CreateRoadCommand) Execute(w *world.World) error {
@@ -23,7 +26,14 @@ func (c *CreateRoadCommand) Execute(w *world.World) error {
 		newRoad.Width = c.Width
 	}
 
-	if c.From == c.To {
+	// If offsets were provided in the command, use them. Otherwise, if this is
+	// a loop (from == to) create a sensible default offset to avoid
+	// zero-length geometry.
+	if c.StartOffset != (road.Point{}) || c.EndOffset != (road.Point{}) {
+		newRoad.StartOffset = c.StartOffset
+		newRoad.EndOffset = c.EndOffset
+		newRoad.UpdateLength()
+	} else if c.From == c.To {
 		offsetLen := newRoad.Width * 0.75
 		if offsetLen < 6.0 {
 			offsetLen = 6.0

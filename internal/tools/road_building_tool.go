@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"math"
 	"traffic-sim/internal/commands"
 	"traffic-sim/internal/query"
 	"traffic-sim/internal/road"
@@ -17,6 +18,9 @@ type RoadBuildingTool struct {
 	maxSnapDist  float64
 	minNodeDist  float64
 	roadSnapDist float64
+	// mouse position where the selection (first click) happened
+	startMouseX float64
+	startMouseY float64
 }
 
 func NewRoadBuildingTool(executor *commands.CommandExecutor, query *query.WorldQuery) *RoadBuildingTool {
@@ -111,20 +115,68 @@ func (t *RoadBuildingTool) Click(mouseX, mouseY float64) error {
 	
 	if t.selectedNode == nil {
 		t.selectedNode = clickedNode
+		t.startMouseX = mouseX
+		t.startMouseY = mouseY
 		return nil
 	}
-	
+
+	// If user clicked the same node again, allow creating a loop road anchored
+	// to the same node. Use the drag vector (from first click to now) to
+	// determine offsets. If the drag is negligible, fallback to defaults in
+	// the CreateRoadCommand.
+	if t.selectedNode == clickedNode {
+		// compute drag vector
+		dx := mouseX - t.startMouseX
+		dy := mouseY - t.startMouseY
+		mag := dx*dx + dy*dy
+
+		var startOff, endOff road.Point
+
+		if mag > 1e-6 {
+			// normalize
+			inv := 1.0 / (math.Sqrt(mag))
+			nx := dx * inv
+			ny := dy * inv
+
+			// length proportional to intended width (approx)
+			offsetLen := 8.0 * 0.75
+			if offsetLen < 6.0 {
+				offsetLen = 6.0
+			}
+
+			startOff = road.Point{X: nx * offsetLen, Y: ny * offsetLen}
+			endOff = road.Point{X: -nx * offsetLen, Y: -ny * offsetLen}
+		}
+
+		cmd := &commands.CreateRoadCommand{
+			From:       clickedNode,
+			To:         clickedNode,
+			MaxSpeed:   40.0,
+			Width:      8.0,
+			StartOffset: startOff,
+			EndOffset:   endOff,
+		}
+
+		if err := t.executor.Execute(cmd); err != nil {
+			return err
+		}
+
+		// For loop roads we create a single road; clear selection.
+		t.selectedNode = nil
+		return nil
+	}
+
 	if t.selectedNode != clickedNode {
 		if err := t.createRoadBetween(t.selectedNode, clickedNode); err != nil {
 			return err
 		}
-		
+        
 		if t.bidirectional {
 			if err := t.createRoadBetween(clickedNode, t.selectedNode); err != nil {
 				return err
 			}
 		}
-		
+        
 		t.selectedNode = nil
 	}
 	
