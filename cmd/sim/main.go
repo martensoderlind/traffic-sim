@@ -53,6 +53,7 @@ func (g *Game) replaceWorld(newWorld *world.World) {
 	g.world = newWorld
 
 	g.simulator = sim.NewSimulator(g.world, 8*time.Millisecond)
+	g.simulator.ResetSystems()
 	
 	g.InputHandler.ReplaceWorld(g.world)
 	g.InputHandler.Simulator = g.simulator

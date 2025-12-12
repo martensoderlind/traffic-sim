@@ -19,6 +19,10 @@ func NewCollisionSystem() *CollisionSystem {
 	}
 }
 
+func (cs *CollisionSystem) Reset() {
+	// No state to reset
+}
+
 func (cs *CollisionSystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()

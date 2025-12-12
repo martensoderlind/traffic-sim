@@ -11,6 +11,10 @@ func NewTrafficLightSystem() *TrafficLightSystem {
 	return &TrafficLightSystem{}
 }
 
+func (tls *TrafficLightSystem) Reset() {
+	// No state to reset
+}
+
 func (tls *TrafficLightSystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()

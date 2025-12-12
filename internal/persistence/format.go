@@ -25,6 +25,10 @@ type RoadData struct {
 	MaxSpeed        float64 `json:"maxSpeed"`
 	Width           float64 `json:"width"`
 	ReverseRoadID   string  `json:"reverseRoadId,omitempty"`
+	StartOffsetX    float64 `json:"startOffsetX,omitempty"`
+	StartOffsetY    float64 `json:"startOffsetY,omitempty"`
+	EndOffsetX      float64 `json:"endOffsetX,omitempty"`
+	EndOffsetY      float64 `json:"endOffsetY,omitempty"`
 }
 
 type SpawnPointData struct {

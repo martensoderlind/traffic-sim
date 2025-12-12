@@ -19,6 +19,10 @@ func NewPathfindingSystem() *PathfindingSystem {
 	return &PathfindingSystem{}
 }
 
+func (ps *PathfindingSystem) Reset() {
+	// No state to reset
+}
+
 func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()

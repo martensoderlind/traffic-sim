@@ -27,6 +27,13 @@ func NewRightOfWaySystem() *RightOfWaySystem {
 	}
 }
 
+// Reset clears internal state when world changes (e.g., load from file)
+func (rows *RightOfWaySystem) Reset() {
+	rows.rules = make(map[string]*road.RightOfWayRule)
+	rows.vehicleArrivalTimes = make(map[string]map[string]float64)
+	rows.waitingVehicles = make(map[string]float64)
+}
+
 func (rows *RightOfWaySystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()
@@ -100,6 +107,11 @@ func (rows *RightOfWaySystem) updateVehicleArrivalTimes(w *world.World, dt float
 
 		if distToEnd < rows.approachDistance {
 			currentVehicles[v.ID] = true
+
+			// Lazy init: ensure the intersection map exists
+			if rows.vehicleArrivalTimes[intersection.ID] == nil {
+				rows.vehicleArrivalTimes[intersection.ID] = make(map[string]float64)
+			}
 
 			if _, exists := rows.vehicleArrivalTimes[intersection.ID][v.ID]; !exists {
 				rows.vehicleArrivalTimes[intersection.ID][v.ID] = 0

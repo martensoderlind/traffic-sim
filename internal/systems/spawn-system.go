@@ -14,6 +14,10 @@ func NewSpawnSystem() *SpawnSystem {
 	return &SpawnSystem{}
 }
 
+func (ss *SpawnSystem) Reset() {
+	// No state to reset
+}
+
 func (ss *SpawnSystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()

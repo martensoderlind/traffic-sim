@@ -25,6 +25,10 @@ func NewMovementSystem() *MovementSystem {
 	}
 }
 
+func (ms *MovementSystem) Reset() {
+	// No state to reset
+}
+
 func (ms *MovementSystem) Update(w *world.World, dt float64) {
 	w.Mu.Lock()
 	defer w.Mu.Unlock()

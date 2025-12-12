@@ -43,6 +43,11 @@ func NewSimulator(w *world.World, tickRate time.Duration) *Simulator {
 	}
 }
 
+// ResetSystems clears internal state in all systems (called when world changes)
+func (s *Simulator) ResetSystems() {
+	s.systemManager.ResetAll()
+}
+
 func (s *Simulator) Start() {
 	ticker := time.NewTicker(s.tickRate)
 	for range ticker.C {
