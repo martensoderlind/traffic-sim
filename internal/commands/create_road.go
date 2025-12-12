@@ -23,6 +23,17 @@ func (c *CreateRoadCommand) Execute(w *world.World) error {
 		newRoad.Width = c.Width
 	}
 
+	if c.From == c.To {
+		offsetLen := newRoad.Width * 0.75
+		if offsetLen < 6.0 {
+			offsetLen = 6.0
+		}
+
+		newRoad.StartOffset = road.Point{X: offsetLen, Y: 0}
+		newRoad.EndOffset = road.Point{X: -offsetLen, Y: 0}
+		newRoad.UpdateLength()
+	}
+
 	for _, existingRoad := range w.Roads {
 		if existingRoad.From == c.To && existingRoad.To == c.From {
 			newRoad.ReverseRoad = existingRoad

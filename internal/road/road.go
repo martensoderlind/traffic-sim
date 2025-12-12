@@ -26,6 +26,8 @@ type Road struct {
 	Width float64
 	ReverseRoad *Road
 	Curve *RoadCurve
+	StartOffset Point
+	EndOffset Point
 }
 
 func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
@@ -44,8 +46,13 @@ func NewRoad(id string, from, to *Node, maxSpeed float64) *Road{
 }
 
 func (r *Road) UpdateLength() {
-	dx := r.From.X - r.To.X
-	dy := r.From.Y - r.To.Y
+	ax := r.From.X + r.StartOffset.X
+	ay := r.From.Y + r.StartOffset.Y
+	bx := r.To.X + r.EndOffset.X
+	by := r.To.Y + r.EndOffset.Y
+
+	dx := ax - bx
+	dy := ay - by
 	r.Length = math.Hypot(dx, dy)
 }
 
@@ -64,17 +71,22 @@ func (r *Road) PosAt(dist float64) (float64, float64) {
     var x, y float64
     
     if r.Curve != nil {
-        p0 := Point{X: r.From.X, Y: r.From.Y}
-        p1 := r.Curve.ControlP1
-        p2 := r.Curve.ControlP2
-        p3 := Point{X: r.To.X, Y: r.To.Y}
-        
-        pt := cubicBezierPoint(p0, p1, p2, p3, t)
-        x = pt.X
-        y = pt.Y
+		p1 := r.Curve.ControlP1
+		p2 := r.Curve.ControlP2
+		p0 := Point{X: r.From.X + r.StartOffset.X, Y: r.From.Y + r.StartOffset.Y}
+		p3 := Point{X: r.To.X + r.EndOffset.X, Y: r.To.Y + r.EndOffset.Y}
+
+		pt := cubicBezierPoint(p0, p1, p2, p3, t)
+		x = pt.X
+		y = pt.Y
     } else {
-        x = r.From.X + t*(r.To.X-r.From.X)
-        y = r.From.Y + t*(r.To.Y-r.From.Y)
+		ax := r.From.X + r.StartOffset.X
+		ay := r.From.Y + r.StartOffset.Y
+		bx := r.To.X + r.EndOffset.X
+		by := r.To.Y + r.EndOffset.Y
+
+		x = ax + t*(bx-ax)
+		y = ay + t*(by-ay)
     }
     
     if r.ReverseRoad != nil {
