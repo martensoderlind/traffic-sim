@@ -9,10 +9,7 @@ type DeleteRoadCommand struct {
 	Road *road.Road
 }
 
-func (c *DeleteRoadCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *DeleteRoadCommand) ExecuteUnlocked(w *world.World) error {
 	if c.Road.ReverseRoad != nil {
 		c.Road.ReverseRoad.ReverseRoad = nil
 	}
@@ -45,4 +42,8 @@ func (c *DeleteRoadCommand) Execute(w *world.World) error {
 	}
 
 	return nil
+}
+
+func (c *DeleteRoadCommand) Execute(w *world.World) error {
+    return nil
 }

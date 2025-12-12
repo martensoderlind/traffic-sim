@@ -11,12 +11,13 @@ type CreateDespawnPointCommand struct {
 	Road      *road.Road
 }
 
-func (c *CreateDespawnPointCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *CreateDespawnPointCommand) ExecuteUnlocked(w *world.World) error {
 	despawnPoint := road.NewDespawnPoint(c.DespawnID, c.Node, c.Road)
 	w.DespawnPoints = append(w.DespawnPoints, despawnPoint)
 
 	return nil
+}
+
+func (c *CreateDespawnPointCommand) Execute(w *world.World) error {
+    return nil
 }

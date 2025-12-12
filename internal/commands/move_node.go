@@ -11,10 +11,7 @@ type MoveNodeCommand struct {
 	NewY float64
 }
 
-func (c *MoveNodeCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *MoveNodeCommand) ExecuteUnlocked(w *world.World) error {
 	c.Node.X = c.NewX
 	c.Node.Y = c.NewY
 
@@ -34,3 +31,8 @@ func (c *MoveNodeCommand) Execute(w *world.World) error {
 
 	return nil
 }
+
+func (c *MoveNodeCommand) Execute(w *world.World) error {
+	return nil
+}
+ 

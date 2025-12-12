@@ -12,10 +12,7 @@ type SplitRoadCommand struct {
 	NodeID string
 }
 
-func (c *SplitRoadCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *SplitRoadCommand) ExecuteUnlocked(w *world.World) error {
 	splitNode := &road.Node{
 		ID: c.NodeID,
 		X:  c.X,
@@ -123,4 +120,8 @@ func (c *SplitRoadCommand) updateVehiclesOnRoad(w *world.World, oldRoad, newRoad
 			}
 		}
 	}
+}
+
+func (c *SplitRoadCommand) Execute(w *world.World) error {
+    return nil
 }

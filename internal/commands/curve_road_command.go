@@ -13,7 +13,7 @@ type CurveRoadCommand struct {
 	OutgoingRoad *road.Road
 }
 
-func (c *CurveRoadCommand) Execute(w *world.World) error {
+func (c *CurveRoadCommand) ExecuteUnlocked(w *world.World) error {
 	if c.Road == nil {
 		return nil
 	}
@@ -141,7 +141,6 @@ func (c *CurveRoadCommand) getOutgoingDirection(r *road.Road, node *road.Node) (
 
 	return dx, dy
 }
-//should probably be updated to better match curve severity
 func (c *CurveRoadCommand) calculateBaseMultiplier(r *road.Road) float64 {
 	const k = 0.001
 	x:= r.Length     
@@ -156,4 +155,8 @@ func (c *CurveRoadCommand) calculateBaseMultiplier(r *road.Road) float64 {
 	den := math.Exp(k*499) - 1
 
 	return num / den
+}
+
+func (c *CurveRoadCommand) Execute(w *world.World) error {
+    return nil
 }

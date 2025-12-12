@@ -10,10 +10,7 @@ type CreateNodeCommand struct {
 	NodeID string
 }
 
-func (c *CreateNodeCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *CreateNodeCommand) ExecuteUnlocked(w *world.World) error {
 	newNode := &road.Node{
 		ID: c.NodeID,
 		X:  c.X,
@@ -23,5 +20,10 @@ func (c *CreateNodeCommand) Execute(w *world.World) error {
 	w.Nodes = append(w.Nodes, newNode)
 	w.CreateIntersection(c.NodeID)
 
+	return nil
+}
+
+// Execute satisfies Command interface (not called when ExecuteWithLocking is detected)
+func (c *CreateNodeCommand) Execute(w *world.World) error {
 	return nil
 }

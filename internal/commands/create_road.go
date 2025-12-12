@@ -14,10 +14,7 @@ type CreateRoadCommand struct {
 	EndOffset   road.Point
 }
 
-func (c *CreateRoadCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *CreateRoadCommand) ExecuteUnlocked(w *world.World) error {
 	roadID := fmt.Sprintf("%s-%s", c.From.ID, c.To.ID)
 	newRoad := road.NewRoad(roadID, c.From, c.To, c.MaxSpeed)
 	
@@ -61,5 +58,9 @@ func (c *CreateRoadCommand) Execute(w *world.World) error {
 		toIntersection.AddIncoming(newRoad)
 	}
 
+	return nil
+}
+
+func (c *CreateRoadCommand) Execute(w *world.World) error {
 	return nil
 }

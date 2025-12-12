@@ -11,10 +11,7 @@ type UpdateRoadPropertiesCommand struct {
 	Width    float64
 }
 
-func (c *UpdateRoadPropertiesCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *UpdateRoadPropertiesCommand) ExecuteUnlocked(w *world.World) error {
 	if c.MaxSpeed > 0 {
 		c.Road.MaxSpeed = c.MaxSpeed
 	}
@@ -24,4 +21,8 @@ func (c *UpdateRoadPropertiesCommand) Execute(w *world.World) error {
 	}
 
 	return nil
+}
+
+func (c *UpdateRoadPropertiesCommand) Execute(w *world.World) error {
+    return nil
 }

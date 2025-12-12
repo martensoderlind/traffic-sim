@@ -11,10 +11,7 @@ type CreateTrafficLightCommand struct {
 	Roads   []*road.Road
 }
 
-func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *CreateTrafficLightCommand) ExecuteUnlocked(w *world.World) error {
 	intersection := w.IntersectionsByNode[c.Node.ID]
 	if intersection == nil {
 		return nil
@@ -38,4 +35,8 @@ func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
 	w.TrafficLights = append(w.TrafficLights, light)
 
 	return nil
+}
+
+func (c *CreateTrafficLightCommand) Execute(w *world.World) error {
+    return nil
 }

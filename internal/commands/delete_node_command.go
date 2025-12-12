@@ -9,10 +9,7 @@ type DeleteNodeCommand struct {
 	Node *road.Node
 }
 
-func (c *DeleteNodeCommand) Execute(w *world.World) error {
-	w.Mu.Lock()
-	defer w.Mu.Unlock()
-
+func (c *DeleteNodeCommand) ExecuteUnlocked(w *world.World) error {
 	intersection := w.IntersectionsByNode[c.Node.ID]
 	if intersection != nil {
 		roadsToDelete := make([]*road.Road, 0)
@@ -21,9 +18,7 @@ func (c *DeleteNodeCommand) Execute(w *world.World) error {
 
 		for _, r := range roadsToDelete {
 			deleteRoadCmd := &DeleteRoadCommand{Road: r}
-			w.Mu.Unlock()
-			deleteRoadCmd.Execute(w)
-			w.Mu.Lock()
+			deleteRoadCmd.ExecuteUnlocked(w)
 		}
 
 		delete(w.IntersectionsByNode, c.Node.ID)
@@ -44,4 +39,8 @@ func (c *DeleteNodeCommand) Execute(w *world.World) error {
 	}
 
 	return nil
+}
+
+func (c *DeleteNodeCommand) Execute(w *world.World) error {
+    return nil
 }
