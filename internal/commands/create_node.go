@@ -23,7 +23,6 @@ func (c *CreateNodeCommand) ExecuteUnlocked(w *world.World) error {
 	return nil
 }
 
-// Execute satisfies Command interface (not called when ExecuteWithLocking is detected)
 func (c *CreateNodeCommand) Execute(w *world.World) error {
 	return nil
 }
