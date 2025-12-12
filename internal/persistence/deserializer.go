@@ -36,6 +36,9 @@ func DeserializeWorld(saveData *SaveFormat) (*world.World, error) {
 
 		rd := road.NewRoad(roadData.ID, fromNode, toNode, roadData.MaxSpeed)
 		rd.Width = roadData.Width
+		rd.StartOffset = road.Point{X: roadData.StartOffsetX, Y: roadData.StartOffsetY}
+		rd.EndOffset = road.Point{X: roadData.EndOffsetX, Y: roadData.EndOffsetY}
+		rd.UpdateLength()
 
 		w.Roads = append(w.Roads, rd)
 		roadMap[rd.ID] = rd

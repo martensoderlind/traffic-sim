@@ -29,11 +29,15 @@ func SerializeWorld(w *world.World) *SaveFormat {
 
 	for _, rd := range w.Roads {
 		roadData := RoadData{
-			ID:         rd.ID,
-			FromNodeID: rd.From.ID,
-			ToNodeID:   rd.To.ID,
-			MaxSpeed:   rd.MaxSpeed,
-			Width:      rd.Width,
+			ID:           rd.ID,
+			FromNodeID:   rd.From.ID,
+			ToNodeID:     rd.To.ID,
+			MaxSpeed:     rd.MaxSpeed,
+			Width:        rd.Width,
+			StartOffsetX: rd.StartOffset.X,
+			StartOffsetY: rd.StartOffset.Y,
+			EndOffsetX:   rd.EndOffset.X,
+			EndOffsetY:   rd.EndOffset.Y,
 		}
 		
 		if rd.ReverseRoad != nil {
