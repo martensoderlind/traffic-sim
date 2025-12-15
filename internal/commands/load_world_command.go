@@ -26,8 +26,12 @@ func (c *LoadWorldCommand) Execute(w *world.World) error {
 		return fmt.Errorf("failed to deserialize world: %w", err)
 	}
 
-	if newWorld != nil && newWorld.Events != nil {
-		newWorld.Events.Emit(events.EventWorldLoaded, events.WorldLoadedEvent{World: newWorld})
+	if w != nil && w.Events != nil {
+		w.Events.Emit(events.EventWorldLoaded, events.WorldLoadedEvent{World: newWorld})
+	}
+
+	if c.OnWorldLoaded != nil {
+		c.OnWorldLoaded(newWorld)
 	}
 
 	return nil
