@@ -26,7 +26,7 @@ func NewRenderer(w *world.World, inputHandler *input.InputHandler) *Renderer {
 	return &Renderer{
 		World:           w,
 		InputHandler:    inputHandler,
-		Toolbar:         ui.NewToolbar(inputHandler),
+		Toolbar:         ui.NewToolbar(inputHandler,w),
 		screenWidth:     1920,
 		screenHeight:    1080,
 		roadRenderer:    NewRoadRenderer(),
@@ -60,4 +60,13 @@ func (r *Renderer) Layout(w, h int) (int, int) {
 	r.screenHeight = h
 	r.Toolbar.UpdatePanelPositions(w, h)
 	return w, h
+}
+
+func (r *Renderer) ReplaceWorld(newWorld *world.World) {
+	r.World = newWorld
+	r.Toolbar.ReplaceWorld(newWorld)
+}
+
+func (r *Renderer) Cleanup() {
+	r.Toolbar.Cleanup()
 }

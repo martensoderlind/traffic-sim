@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"traffic-sim/internal/input"
+	"traffic-sim/internal/world"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -13,6 +14,7 @@ type Toolbar struct {
 	inputHandler  *input.InputHandler
 	modeIndicator *Label
 	simulationState *Label
+	statsPanel    *StatsPanel
 	
 	roadBuildBtn    *Button
 	moveNodeBtn     *Button
@@ -30,12 +32,15 @@ type Toolbar struct {
 	loadBtn         *Button
     roadPropertiesPanel *RoadPropertiesPanel
     spawnPointPropertiesPanel *SpawnerPropertiesPanel
+
+	world *world.World
 }
 
-func NewToolbar(inputHandler *input.InputHandler) *Toolbar {
+func NewToolbar(inputHandler *input.InputHandler,w *world.World) *Toolbar {
 	tb := &Toolbar{
 		uiManager:    NewUIManager(),
 		inputHandler: inputHandler,
+		world: 	  w,
 	}
 	
 	tb.setupUI()
@@ -144,6 +149,8 @@ func (tb *Toolbar) setupUI() {
 	tb.simulationState.SetBackground(color.RGBA{45, 55, 45, 240})
 	tb.uiManager.AddLabel(tb.simulationState)
 	
+	tb.statsPanel = NewStatsPanel(15, btnY+40, tb.world)
+
 	tb.roadPropertiesPanel = NewRoadPropertiesPanel(1600, 200)
 	tb.roadPropertiesPanel.SetOnApply(func(maxSpeed, width float64) {
 		if tb.inputHandler.RoadPropTool().GetSelectedRoad() != nil {
@@ -178,7 +185,8 @@ func (tb *Toolbar) Update(mouseX, mouseY int, clicked bool) {
 	tb.updateModeIndicator()
 	tb.updateSimulationStatus()
 	tb.updateButtonStates()
-	
+	tb.statsPanel.Update()
+
 	mode := tb.inputHandler.Mode()
 	if mode == input.ModeRoadProperties {
 		selectedRoad := tb.inputHandler.RoadPropTool().GetSelectedRoad()
@@ -392,10 +400,20 @@ func (tb *Toolbar) updateButtonStates() {
 
 func (tb *Toolbar) Draw(screen *ebiten.Image) {
 	tb.uiManager.Draw(screen)
+	tb.statsPanel.Draw(screen)
 	tb.roadPropertiesPanel.Draw(screen)
 	tb.spawnPointPropertiesPanel.Draw(screen)
 }
 
 func (tb *Toolbar) GetUIManager() *UIManager {
 	return tb.uiManager
+}
+
+func (tb *Toolbar) ReplaceWorld(newWorld *world.World) {
+	tb.world = newWorld
+	tb.statsPanel.ReplaceWorld(newWorld)
+}
+
+func (tb *Toolbar) Cleanup() {
+	tb.statsPanel.Cleanup()
 }

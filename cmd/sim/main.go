@@ -48,9 +48,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func (g *Game) replaceWorld(newWorld *world.World) {
-	// Simply replace the reference; newWorld is a fresh instance from load.
-	// No need to lock here since this is called from the UI update thread
-	// and the old world is about to be discarded.
+
 	g.world = newWorld
 
 	g.simulator = sim.NewSimulator(g.world, 8*time.Millisecond)
@@ -59,9 +57,15 @@ func (g *Game) replaceWorld(newWorld *world.World) {
 	g.InputHandler.ReplaceWorld(g.world)
 	g.InputHandler.Simulator = g.simulator
 	
-	g.renderer.World = g.world
-	g.renderer.InputHandler = g.InputHandler
+	g.renderer.ReplaceWorld(g.world)
 	
+	g.world.Events.Subscribe(events.EventWorldLoaded, func(p any) {
+		ev, ok := p.(events.WorldLoadedEvent)
+		if !ok {
+			return
+		}
+		g.replaceWorld(ev.World.(*world.World))
+	})
 	
 	log.Println("World replaced successfully")
 }
