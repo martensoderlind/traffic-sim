@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -19,6 +20,10 @@ func (c *CreateNodeCommand) ExecuteUnlocked(w *world.World) error {
 
 	w.Nodes = append(w.Nodes, newNode)
 	w.CreateIntersection(c.NodeID)
+
+	if w.Events != nil {
+		w.Events.Emit(events.EventNodeCreated, events.NodeCreatedEvent{Node: newNode})
+	}
 
 	return nil
 }

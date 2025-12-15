@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -10,6 +11,7 @@ type DeleteNodeCommand struct {
 }
 
 func (c *DeleteNodeCommand) ExecuteUnlocked(w *world.World) error {
+	nodeID := c.Node.ID
 	intersection := w.IntersectionsByNode[c.Node.ID]
 	if intersection != nil {
 		roadsToDelete := make([]*road.Road, 0)
@@ -36,6 +38,10 @@ func (c *DeleteNodeCommand) ExecuteUnlocked(w *world.World) error {
 			w.Nodes = append(w.Nodes[:i], w.Nodes[i+1:]...)
 			break
 		}
+	}
+
+	if w.Events != nil {
+		w.Events.Emit(events.EventNodeDeleted, events.NodeDeletedEvent{NodeID: nodeID})
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -33,6 +34,12 @@ func (c *CreateTrafficLightCommand) ExecuteUnlocked(w *world.World) error {
 	}
 
 	w.TrafficLights = append(w.TrafficLights, light)
+
+	if w.Events != nil {
+		w.Events.Emit(events.EventTrafficLightCreated, events.TrafficLightCreatedEvent{
+			TrafficLight: light,
+		})
+	}
 
 	return nil
 }

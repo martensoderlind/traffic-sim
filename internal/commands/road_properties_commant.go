@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -20,6 +21,14 @@ func (c *UpdateRoadPropertiesCommand) ExecuteUnlocked(w *world.World) error {
 		c.Road.Width = c.Width
 	}
 
+	if w.Events != nil {
+		w.Events.Emit(events.EventRoadPropertiesUpdated, events.RoadPropertiesUpdatedEvent{
+			Road:     c.Road,
+			MaxSpeed: c.MaxSpeed,
+			Width:    c.Width,
+		})
+	}
+	
 	return nil
 }
 
