@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"traffic-sim/internal/commands"
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/query"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/sim"
@@ -51,7 +52,7 @@ type InputHandler struct {
 	spawnPointPropertiesPanel interface{ Contains(x, y int) bool }
 	world            *world.World
 	executor         *commands.CommandExecutor
-	onWorldReplaced  func(*world.World)
+	worldLoadedUnsub func()
 }
 
 func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
@@ -78,8 +79,22 @@ func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 	}
 }
 
-func (h *InputHandler) SetOnWorldReplaced(callback func(*world.World)) {
-	h.onWorldReplaced = callback
+// SetOnWorldReplaced was removed; consumers should subscribe to events.EventWorldLoaded
+// directly on the world's dispatcher.
+
+func (h *InputHandler) subscribeToWorldEvents(w *world.World) {
+	if h.worldLoadedUnsub != nil {
+		h.worldLoadedUnsub()
+		h.worldLoadedUnsub = nil
+	}
+	if w == nil || w.Events == nil {
+		return
+	}
+	h.worldLoadedUnsub = w.Events.Subscribe(events.EventWorldLoaded, func(p any) {
+		// InputHandler currently doesn't need to forward this event; other
+		// parts of the program should subscribe directly if they need it.
+		_ = p
+	})
 }
 
 func (h *InputHandler) Mode() Mode {
@@ -204,14 +219,7 @@ func (h *InputHandler) handleSave() {
 }
 
 func (h *InputHandler) handleLoad() {
-	cmd := &commands.LoadWorldCommand{
-		OnWorldLoaded: func(newWorld *world.World) {
-			if h.onWorldReplaced != nil {
-				h.onWorldReplaced(newWorld)
-			}
-		},
-	}
-	
+	cmd := &commands.LoadWorldCommand{}
 	if err := cmd.Execute(h.world); err != nil {
 		log.Printf("Failed to load world: %v", err)
 	}
@@ -236,6 +244,7 @@ func (h *InputHandler) ReplaceWorld(newWorld *world.World) {
 	h.roadCurveTool = toolSet.RoadCurving
 	
 	h.SetMode(ModeNormal)
+	h.subscribeToWorldEvents(newWorld)
 }
 
 func (h *InputHandler) handleModeSwitch() {

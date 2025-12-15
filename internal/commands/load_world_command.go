@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/persistence"
 	"traffic-sim/internal/world"
 )
@@ -25,8 +26,8 @@ func (c *LoadWorldCommand) Execute(w *world.World) error {
 		return fmt.Errorf("failed to deserialize world: %w", err)
 	}
 
-	if c.OnWorldLoaded != nil {
-		c.OnWorldLoaded(newWorld)
+	if newWorld != nil && newWorld.Events != nil {
+		newWorld.Events.Emit(events.EventWorldLoaded, events.WorldLoadedEvent{World: newWorld})
 	}
 
 	return nil

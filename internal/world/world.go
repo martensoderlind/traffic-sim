@@ -3,6 +3,7 @@ package world
 import (
 	"sync"
 
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/vehicle"
 )
@@ -19,6 +20,7 @@ type World struct {
 	IntersectionsByNode map[string]*road.Intersection
 
 	Mu sync.RWMutex
+	Events *events.Dispatcher
 }
 
 func New() *World {
@@ -29,13 +31,8 @@ func New() *World {
 		SpawnPoints:         make([]*road.SpawnPoint, 0),
 		DespawnPoints:       make([]*road.DespawnPoint, 0),
 		IntersectionsByNode: make(map[string]*road.Intersection),
+		Events:              events.NewDispatcher(),
 	}
-
-	// w.Intersections = road.BuildIntersections(roads, nodes)
-	// for _, i := range w.Intersections {
-	// 	w.IntersectionsByNode[i.ID] = i
-	// }
-
 	return w
 }
 

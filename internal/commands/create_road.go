@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -50,6 +51,10 @@ func (c *CreateRoadCommand) ExecuteUnlocked(w *world.World) error {
 
 	if toIntersection != nil {
 		toIntersection.AddIncoming(newRoad)
+	}
+
+	if w.Events != nil {
+		w.Events.Emit(events.EventRoadCreated, events.RoadCreatedEvent{Road: newRoad})
 	}
 
 	return nil

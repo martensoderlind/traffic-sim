@@ -7,6 +7,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/input"
 	"traffic-sim/internal/renderer"
 	"traffic-sim/internal/sim"
@@ -66,20 +67,28 @@ func (g *Game) replaceWorld(newWorld *world.World) {
 }
 
 func main() {
-	world := world.New()
-	simulator := sim.NewSimulator(world, 8*time.Millisecond)
-	inputHandler := input.NewInputHandler(world, simulator)
+	w := world.New()
+	simulator := sim.NewSimulator(w, 8*time.Millisecond)
+	inputHandler := input.NewInputHandler(w, simulator)
 
-	rend := renderer.NewRenderer(world, inputHandler)
+	rend := renderer.NewRenderer(w, inputHandler)
 
 	game := &Game{
 		renderer:     rend,
 		simulator:    simulator,
-		world:        world,
+		world:        w,
 		InputHandler: inputHandler,
 	}
 	
-	inputHandler.SetOnWorldReplaced(game.replaceWorld)
+	if w.Events != nil {
+		w.Events.Subscribe(events.EventWorldLoaded, func(p any) {
+			ev, ok := p.(events.WorldLoadedEvent)
+			if !ok {
+				return
+			}
+			game.replaceWorld(ev.World.(*world.World))
+		})
+	}
 
 	ebiten.SetWindowSize(1920, 1080)
 	ebiten.SetWindowTitle("Traffic Simulation")
