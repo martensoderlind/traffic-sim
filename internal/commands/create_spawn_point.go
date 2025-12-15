@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"traffic-sim/internal/events"
 	"traffic-sim/internal/road"
 	"traffic-sim/internal/world"
 )
@@ -14,6 +15,10 @@ type CreateSpawnPointCommand struct {
 func (c *CreateSpawnPointCommand) ExecuteUnlocked(w *world.World) error {
 	spawnPoint := road.NewSpawnPoint(c.SpawnID, c.Node, c.Road)
 	w.SpawnPoints = append(w.SpawnPoints, spawnPoint)
+
+	if w.Events != nil {
+		w.Events.Emit(events.EventSpawnPointCreated, events.SpawnPointCreatedEvent{SpawnPoint: spawnPoint})
+	}
 
 	return nil
 }
