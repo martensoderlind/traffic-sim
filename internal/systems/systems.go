@@ -6,7 +6,7 @@ import (
 
 type System interface {
 	Update(w *world.World, dt float64)
-	Reset() // Called when world is replaced
+	Reset() 
 }
 
 type SystemManager struct {
@@ -29,7 +29,7 @@ func (sm *SystemManager) Update(w *world.World, dt float64) {
 	}
 }
 
-// ResetAll calls Reset on all systems (typically called when world changes)
+
 func (sm *SystemManager) ResetAll() {
 	for _, system := range sm.systems {
 		system.Reset()
