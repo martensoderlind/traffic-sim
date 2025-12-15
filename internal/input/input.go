@@ -79,9 +79,6 @@ func NewInputHandler(w *world.World, s *sim.Simulator) *InputHandler {
 	}
 }
 
-// SetOnWorldReplaced was removed; consumers should subscribe to events.EventWorldLoaded
-// directly on the world's dispatcher.
-
 func (h *InputHandler) subscribeToWorldEvents(w *world.World) {
 	if h.worldLoadedUnsub != nil {
 		h.worldLoadedUnsub()
@@ -91,8 +88,6 @@ func (h *InputHandler) subscribeToWorldEvents(w *world.World) {
 		return
 	}
 	h.worldLoadedUnsub = w.Events.Subscribe(events.EventWorldLoaded, func(p any) {
-		// InputHandler currently doesn't need to forward this event; other
-		// parts of the program should subscribe directly if they need it.
 		_ = p
 	})
 }
