@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 	"strings"
@@ -52,10 +53,14 @@ func NewNumberInput(x, y, width, height float64, initial float64) *NumberInput {
 }
 
 func (ni *NumberInput) setupUI() {
-	ni.incrementValueBtn = NewButton(ni.X+ni.Width+10, ni.Y, ni.Height/2, ni.Height/2, "+ ", func() {
+	ni.incrementValueBtn = NewButton(ni.X+ni.Width+5, ni.Y, ni.Height/2, ni.Height/2, "+", func() {
 		ni.IncrementNumber()
 	})
-	ni.decrementValueBtn = NewButton(ni.X+ni.Width+10, ni.Y+ni.Height/2, ni.Height/2, ni.Height/2, "- ", func(){ni.decrementNumber()})
+	ni.incrementValueBtn.size = 8
+	ni.incrementValueBtn.Padding = 4
+	ni.decrementValueBtn = NewButton(ni.X+ni.Width+5, ni.Y+ni.Height/2, ni.Height/2, ni.Height/2, "-", func(){ni.decrementNumber()})
+	ni.decrementValueBtn.size = 8
+	ni.decrementValueBtn.Padding = 4
 }
 
 func (ni *NumberInput) Contains(x, y int) bool {
@@ -64,10 +69,26 @@ func (ni *NumberInput) Contains(x, y int) bool {
 }
 
 func (ni *NumberInput) Update(mouseX, mouseY int, clicked bool) {
+	if ni.incrementValueBtn != nil {
+		ni.incrementValueBtn.Update(mouseX, mouseY, clicked)
+	}
+	if ni.decrementValueBtn != nil {
+		ni.decrementValueBtn.Update(mouseX, mouseY, clicked)
+	}
+
+	if clicked {
+		if ni.incrementValueBtn != nil && ni.incrementValueBtn.Contains(mouseX, mouseY) {
+			return
+		}
+		if ni.decrementValueBtn != nil && ni.decrementValueBtn.Contains(mouseX, mouseY) {
+			return
+		}
+	}
+
 	if clicked {
 		ni.Active = ni.Contains(mouseX, mouseY)
 	}
-	
+
 	if ni.Active {
 		ni.handleInput()
 	}
@@ -160,9 +181,11 @@ func (ni *NumberInput) SetNumber(v float64) {
 func (ni *NumberInput) IncrementNumber() {
 	ni.value += ni.Step
 	ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
+	fmt.Println("Incremented to:", ni.value)
 }
 
 func (ni *NumberInput) decrementNumber() {
 	ni.value -= ni.Step
 	ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
+	fmt.Println("Decremented to:", ni.value)
 }
