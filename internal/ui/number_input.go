@@ -52,14 +52,17 @@ func NewNumberInput(x, y, width, height float64, initial float64) *NumberInput {
 }
 
 func (ni *NumberInput) setupUI() {
-	ni.incrementValueBtn = NewButton(ni.X+ni.Width+5, ni.Y, ni.Height/2, ni.Height/2, "+", func() {
+	ni.incrementValueBtn = NewButton(ni.X+ni.Width-30, ni.Y+5,ni.Height-10, ni.Height-10, "›", func() {
 		ni.IncrementNumber()
 	})
-	ni.incrementValueBtn.size = 8
-	ni.incrementValueBtn.Padding = 4
-	ni.decrementValueBtn = NewButton(ni.X+ni.Width+5, ni.Y+ni.Height/2, ni.Height/2, ni.Height/2, "-", func(){ni.decrementNumber()})
-	ni.decrementValueBtn.size = 8
-	ni.decrementValueBtn.Padding = 4
+	ni.incrementValueBtn.SizeMode = ButtonFixedSize
+	ni.incrementValueBtn.size = 10
+	ni.incrementValueBtn.Padding = 10
+
+	ni.decrementValueBtn = NewButton(ni.X+ni.Width-60, ni.Y+5,ni.Height-10, ni.Height-10, "‹", func(){ni.decrementNumber()})
+	ni.decrementValueBtn.SizeMode = ButtonFixedSize
+	ni.decrementValueBtn.size = 10
+	ni.decrementValueBtn.Padding = 10
 }
 
 func (ni *NumberInput) Contains(x, y int) bool {
