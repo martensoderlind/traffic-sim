@@ -92,8 +92,8 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	}
 	
 	NewRect(
-		float32(b.X-b.Padding),
-		float32(b.Y-b.Padding),
+		float32(b.X),
+		float32(b.Y),
 		buttonWidth,
 		buttonHeight,
 		6,
@@ -101,7 +101,16 @@ func (b *Button) Draw(screen *ebiten.Image) {
 		).draw(screen)
 
 	cursorX := b.X + b.Padding
-	cursorY := b.Y + b.Padding
+	face := &text.GoTextFace{
+		Source: getDefaultFontSource(),
+		Size:   b.size,
+	}
+
+	metrics := face.Metrics()
+	textHeight := metrics.HAscent + metrics.HDescent
+
+	cursorY := b.Y + (float64(buttonHeight)-textHeight)/2
+
 
 	if b.Icon != nil {
 		op := &ebiten.DrawImageOptions{}
@@ -122,16 +131,32 @@ func (b *Button) Draw(screen *ebiten.Image) {
 	textOp.GeoM.Translate(cursorX, cursorY)
 	textOp.ColorScale.ScaleWithColor(b.textColor)
 
-	text.Draw(screen, b.Text, &text.GoTextFace{
-		Source: getDefaultFontSource(),
-		Size:   b.size,
-	}, textOp)
+	text.Draw(screen, b.Text, face, textOp)
 }
 
 func (b *Button) calculateHeight()float32 {
-	return float32(b.Height + b.Padding*2)
+	face := &text.GoTextFace{
+		Source: getDefaultFontSource(),
+		Size:   b.size,
+	}
+
+	metrics := face.Metrics()
+	textHeight := metrics.HAscent + metrics.HDescent
+
+	return float32(textHeight + b.Padding*2)
 }
 func (b *Button) calculateWidth() float32 {
-	textWidth := float64(len(b.Text)) * (b.size * 0.6)
-	return float32(textWidth+ b.Padding*2 )
+	face := &text.GoTextFace{
+		Source: getDefaultFontSource(),
+		Size:   b.size,
+	}
+
+	textWidth,_ := text.Measure(b.Text, face, 0)
+
+	iconWidth := 0.0
+	if b.Icon != nil {
+		iconWidth = b.IconWidth + 6
+	}
+
+	return float32(textWidth + iconWidth + b.Padding*2)
 }
