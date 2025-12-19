@@ -51,18 +51,18 @@ func NewBoolInput(x, y, width, height float64, initial bool) *BoolInput {
 
 func (bi *BoolInput) setupUI() {
 	bi.TrueValueLabel = NewLabel(bi.X+5, bi.Y+5, "True")
-	bi.TrueValueBtn = NewButton(bi.X+30, bi.Y+5,bi.Height-10, bi.Height-10, " ", func() {
+	bi.TrueValueBtn = NewButton(bi.X+30, bi.Y+5,bi.Height-10, bi.Height-10, "X", func() {
 		bi.ToggleValueTrue()
 	})
 	bi.TrueValueBtn.SizeMode = ButtonFixedSize
-	bi.TrueValueBtn.size = 2
-	bi.TrueValueBtn.Padding = 0
+	bi.TrueValueBtn.size = 10
+	bi.TrueValueBtn.Padding = 9
 	
 	bi.FalseValueLabel = NewLabel(bi.X+35, bi.Y+5, "False")
 	bi.FalseValueBtn = NewButton(bi.X+60, bi.Y+5,bi.Height-10, bi.Height-10, " ", func(){bi.ToggleValueFalse()})
 	bi.FalseValueBtn.SizeMode = ButtonFixedSize
-	bi.FalseValueBtn.size = 2
-	bi.FalseValueBtn.Padding = 0
+	bi.FalseValueBtn.size = 10
+	bi.FalseValueBtn.Padding = 9
 }
 
 func (bi *BoolInput) Contains(x, y int) bool {
@@ -132,10 +132,13 @@ func (bi *BoolInput) SetValue(v bool) {
 func (bi *BoolInput) ToggleValueTrue() {
 	bi.value = true
 	bi.text = strconv.FormatBool(bi.value)
+	bi.TrueValueBtn.Text = "X"
+	bi.FalseValueBtn.Text = " "
 }
 
 func (bi *BoolInput) ToggleValueFalse() {
 	bi.value = false
 	bi.text = strconv.FormatBool(bi.value)
-	bi.TrueValueBtn.hovered = false
+	bi.TrueValueBtn.Text = " "
+	bi.FalseValueBtn.Text = "X"
 }
