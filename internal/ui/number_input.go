@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
 	"strconv"
 	"strings"
@@ -181,11 +180,9 @@ func (ni *NumberInput) SetNumber(v float64) {
 func (ni *NumberInput) IncrementNumber() {
 	ni.value += ni.Step
 	ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
-	fmt.Println("Incremented to:", ni.value)
 }
 
 func (ni *NumberInput) decrementNumber() {
 	ni.value -= ni.Step
 	ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
-	fmt.Println("Decremented to:", ni.value)
 }
