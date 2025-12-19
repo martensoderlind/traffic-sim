@@ -23,6 +23,8 @@ type Vehicle struct {
 	TransitionCurve   *geom.BezierCurve
 	TransitionT       float64
 	TransitionSpeed   float64
+	
+	TargetDespawn     *road.DespawnPoint
 }
 
 func (v *Vehicle) Position() Vec2 {

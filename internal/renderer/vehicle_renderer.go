@@ -11,18 +11,44 @@ import (
 
 type VehicleRenderer struct{
 	shadowOffset float32
+	showTargetLines bool
 }
 
 func NewVehicleRenderer() *VehicleRenderer {
 	return &VehicleRenderer{
 		shadowOffset: 2.0,
+		showTargetLines: false,
 	}
 }
 
+func (vr *VehicleRenderer) SetShowTargetLines(show bool) {
+	vr.showTargetLines = show
+}
+
 func (vr *VehicleRenderer) RenderVehicles(screen *ebiten.Image, vehicles []*vehicle.Vehicle) {
+	if vr.showTargetLines {
+		for _, v := range vehicles {
+			vr.renderTargetLine(screen, v)
+		}
+	}
+	
 	for _, v := range vehicles {
 		vr.renderSingleVehicle(screen, v)
 	}
+}
+
+func (vr *VehicleRenderer) renderTargetLine(screen *ebiten.Image, v *vehicle.Vehicle) {
+	if v.TargetDespawn == nil {
+		return
+	}
+	
+	targetX := float32(v.TargetDespawn.Node.X)
+	targetY := float32(v.TargetDespawn.Node.Y)
+	vehicleX := float32(v.Pos.X)
+	vehicleY := float32(v.Pos.Y)
+	
+	lineColor := color.RGBA{100, 100, 255, 80}
+	vector.StrokeLine(screen, vehicleX, vehicleY, targetX, targetY, 1, lineColor, false)
 }
 
 func (vr *VehicleRenderer) renderSingleVehicle(screen *ebiten.Image, v *vehicle.Vehicle) {
@@ -68,11 +94,28 @@ func (vr *VehicleRenderer) renderSingleVehicle(screen *ebiten.Image, v *vehicle.
 	indices := []uint16{0, 1, 2, 0, 2, 3}
 	screen.DrawTriangles(shadowVerts, indices, vr.createWhiteImage(), nil)
 
+	var bodyColor1, bodyColor2 color.RGBA
+	if v.TargetDespawn != nil {
+		bodyColor1 = color.RGBA{90, 90, 230, 255}
+		bodyColor2 = color.RGBA{70, 70, 180, 255}
+	} else {
+		bodyColor1 = color.RGBA{230, 65, 65, 255}
+		bodyColor2 = color.RGBA{180, 40, 40, 255}
+	}
+
 	bodyVerts := []ebiten.Vertex{
-		{DstX: rotated[0][0], DstY: rotated[0][1], SrcX: 0, SrcY: 0, ColorR: 0.9, ColorG: 0.25, ColorB: 0.25, ColorA: 1},
-		{DstX: rotated[1][0], DstY: rotated[1][1], SrcX: 0, SrcY: 0, ColorR: 0.9, ColorG: 0.25, ColorB: 0.25, ColorA: 1},
-		{DstX: rotated[2][0], DstY: rotated[2][1], SrcX: 0, SrcY: 0, ColorR: 0.7, ColorG: 0.15, ColorB: 0.15, ColorA: 1},
-		{DstX: rotated[3][0], DstY: rotated[3][1], SrcX: 0, SrcY: 0, ColorR: 0.7, ColorG: 0.15, ColorB: 0.15, ColorA: 1},
+		{DstX: rotated[0][0], DstY: rotated[0][1], SrcX: 0, SrcY: 0, 
+			ColorR: float32(bodyColor1.R)/255, ColorG: float32(bodyColor1.G)/255, 
+			ColorB: float32(bodyColor1.B)/255, ColorA: 1},
+		{DstX: rotated[1][0], DstY: rotated[1][1], SrcX: 0, SrcY: 0, 
+			ColorR: float32(bodyColor1.R)/255, ColorG: float32(bodyColor1.G)/255, 
+			ColorB: float32(bodyColor1.B)/255, ColorA: 1},
+		{DstX: rotated[2][0], DstY: rotated[2][1], SrcX: 0, SrcY: 0, 
+			ColorR: float32(bodyColor2.R)/255, ColorG: float32(bodyColor2.G)/255, 
+			ColorB: float32(bodyColor2.B)/255, ColorA: 1},
+		{DstX: rotated[3][0], DstY: rotated[3][1], SrcX: 0, SrcY: 0, 
+			ColorR: float32(bodyColor2.R)/255, ColorG: float32(bodyColor2.G)/255, 
+			ColorB: float32(bodyColor2.B)/255, ColorA: 1},
 	}
 	screen.DrawTriangles(bodyVerts, indices, vr.createWhiteImage(), nil)
 
@@ -96,7 +139,7 @@ func (vr *VehicleRenderer) renderSingleVehicle(screen *ebiten.Image, v *vehicle.
 		{DstX: windRotated[2][0], DstY: windRotated[2][1], SrcX: 0, SrcY: 0, ColorR: 0.3, ColorG: 0.4, ColorB: 0.5, ColorA: 0.6},
 		{DstX: windRotated[3][0], DstY: windRotated[3][1], SrcX: 0, SrcY: 0, ColorR: 0.3, ColorG: 0.4, ColorB: 0.5, ColorA: 0.6},
 	}
-	screen.DrawTriangles(windVerts, indices, createWhiteImage(), nil)
+	screen.DrawTriangles(windVerts, indices, vr.createWhiteImage(), nil)
 
 	headlightOffset := hh * 0.8
 	headlightSize := float32(1.5)
@@ -134,7 +177,13 @@ func (vr *VehicleRenderer) renderSingleVehicle(screen *ebiten.Image, v *vehicle.
 			color.RGBA{255, 50, 50, 255}, false)
 	}
 
-	edgeColor := color.RGBA{180, 50, 50, 255}
+	var edgeColor color.RGBA
+	if v.TargetDespawn != nil {
+		edgeColor = color.RGBA{70, 70, 180, 255}
+	} else {
+		edgeColor = color.RGBA{180, 50, 50, 255}
+	}
+	
 	vector.StrokeLine(screen, rotated[0][0], rotated[0][1], rotated[1][0], rotated[1][1], 1, edgeColor, false)
 	vector.StrokeLine(screen, rotated[1][0], rotated[1][1], rotated[2][0], rotated[2][1], 1, edgeColor, false)
 	vector.StrokeLine(screen, rotated[2][0], rotated[2][1], rotated[3][0], rotated[3][1], 1, edgeColor, false)

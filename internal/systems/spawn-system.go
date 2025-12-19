@@ -15,7 +15,6 @@ func NewSpawnSystem() *SpawnSystem {
 }
 
 func (ss *SpawnSystem) Reset() {
-	// No state to reset
 }
 
 func (ss *SpawnSystem) Update(w *world.World, dt float64) {
@@ -56,6 +55,23 @@ func (ss *SpawnSystem) spawnVehicle(w *world.World, id string, rd *road.Road, sp
 		Speed:    speed,
 		Pos:      vehicle.Vec2{X: rd.From.X, Y: rd.From.Y},
 	}
+	
+	ss.assignTargetDespawn(newVehicle, w)
 
 	w.Vehicles = append(w.Vehicles, newVehicle)
+}
+
+func (ss *SpawnSystem) assignTargetDespawn(v *vehicle.Vehicle, w *world.World) {
+	activeDespawns := make([]*road.DespawnPoint, 0)
+	for _, dp := range w.DespawnPoints {
+		if dp.Enabled {
+			activeDespawns = append(activeDespawns, dp)
+		}
+	}
+	
+	if len(activeDespawns) == 0 {
+		return
+	}
+	
+	v.TargetDespawn = activeDespawns[rand.Intn(len(activeDespawns))]
 }
