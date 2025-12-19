@@ -183,6 +183,11 @@ func (ni *NumberInput) IncrementNumber() {
 }
 
 func (ni *NumberInput) decrementNumber() {
+	if ni.value-ni.Step < 0 {
+		ni.value = 0
+		ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
+		return
+	}
 	ni.value -= ni.Step
 	ni.text = strconv.FormatFloat(ni.value, 'f', -1, 64)
 }
