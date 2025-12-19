@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"image/color"
-	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -24,7 +23,7 @@ type SpawnerPropertiesPanel struct {
 	MinSpeedInput *NumberInput 
 	MaxSpeedInput *NumberInput
 	MaxVehiclesInput *NumberInput
-	EnabledInput *TextInput
+	EnabledInput *BoolInput
 
 	applyBtn    *Button
 	closeBtn    *Button
@@ -110,7 +109,8 @@ func (p *SpawnerPropertiesPanel) setupUI() {
 	enabledLabel.Size = 14
 	p.labels = append(p.labels, enabledLabel)
 	
-	p.EnabledInput = NewTextInput(p.X+15, p.Y+250+20, 270, 35, "true")
+	// p.EnabledInput = NewTextInput(p.X+15, p.Y+250+20, 270, 35, "true")
+	p.EnabledInput = NewBoolInput(p.X+15, p.Y+250+20, 270, 35, true)
 	
 	yOffset += 50
 
@@ -127,7 +127,7 @@ func (p *SpawnerPropertiesPanel) Show(Interval,MinSpeed,MaxSpeed float64, MaxVeh
 	p.MinSpeedInput.SetNumber( MinSpeed)
 	p.MaxSpeedInput.SetNumber( MaxSpeed)
 	p.MaxVehiclesInput.SetNumber( float64(MaxVehicles))
-	p.EnabledInput.SetText(fmt.Sprintf("%t", Enabled))
+	p.EnabledInput.SetValue( Enabled)
 }
 
 func (p *SpawnerPropertiesPanel) Hide() {
@@ -170,6 +170,17 @@ func (p *SpawnerPropertiesPanel) updateUIPositions() {
 	p.EnabledInput.X = p.X + 15
 	p.EnabledInput.Y = p.Y + yOffset
 
+	p.EnabledInput.TrueValueLabel.X = p.EnabledInput.X 
+	p.EnabledInput.TrueValueLabel.Y = p.EnabledInput.Y +5
+	p.EnabledInput.TrueValueBtn.X = p.EnabledInput.X + 35
+	p.EnabledInput.TrueValueBtn.Y = p.EnabledInput.Y 
+
+	p.EnabledInput.FalseValueLabel.X = p.EnabledInput.X + 80
+	p.EnabledInput.FalseValueLabel.Y = p.EnabledInput.Y +5
+	p.EnabledInput.FalseValueBtn.X = p.EnabledInput.X + 120
+	p.EnabledInput.FalseValueBtn.Y = p.EnabledInput.Y
+
+
 	p.applyBtn.X = p.X + 140
 	p.applyBtn.Y = p.Y + 410
 	
@@ -194,7 +205,7 @@ func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 		MinSpeed:=p.MinSpeedInput.GetNumber()
 		MaxSpeed:=p.MaxSpeedInput.GetNumber()
 		MaxVehicles:= int(p.MaxVehiclesInput.GetNumber())
-		Enabled, _:= strconv.ParseBool(p.EnabledInput.GetText())
+		Enabled:= p.EnabledInput.GetValue()
 	
 		if MinSpeed <= 0 {
 			MinSpeed = 20.0
