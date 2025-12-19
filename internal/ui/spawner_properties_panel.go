@@ -171,10 +171,10 @@ func (p *SpawnerPropertiesPanel) updateUIPositions() {
 	p.EnabledInput.Y = p.Y + yOffset
 
 	p.applyBtn.X = p.X + 140
-	p.applyBtn.Y = p.Y + 480
+	p.applyBtn.Y = p.Y + 410
 	
 	p.closeBtn.X = p.X + 225
-	p.closeBtn.Y = p.Y + 480
+	p.closeBtn.Y = p.Y + 410
 }
 
 func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
@@ -247,10 +247,10 @@ func (p *SpawnerPropertiesPanel) Draw(screen *ebiten.Image) {
 
 func (p *SpawnerPropertiesPanel) calculateHeight() {
 	for _, label := range p.labels {
-		p.Height += label.calculateHeight()+7
+		p.Height += label.calculateHeight()
 	}
 	for _, input := range p.inputs {
-		p.Height += input.Height + 7
+		p.Height += input.Height 
 	}
 	p.Height += p.EnabledInput.Height + 7
 	p.Height += p.applyBtn.Height 
