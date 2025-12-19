@@ -36,7 +36,6 @@ type Button struct {
 	IconHeight float64
 
 	SizeMode ButtonSizeMode
-
 }
 
 func NewButton(x, y, width, height float64, text string, onClick func()) *Button {
