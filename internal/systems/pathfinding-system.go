@@ -145,7 +145,11 @@ func (ps *PathfindingSystem) findNextRoadToTarget(v *vehicle.Vehicle, w *world.W
 	currentNodeID := v.Road.To.ID
 	
 	if currentNodeID == targetNodeID {
-		return v.TargetDespawn.Road
+		for _, rd := range w.IntersectionsByNode[currentNodeID].Outgoing {
+			if rd.ID == v.TargetDespawn.Road.ID {
+				return v.TargetDespawn.Road
+			}
+		}
 	}
 	
 	path := ps.findShortestPathDijkstra(currentNodeID, targetNodeID, w)
