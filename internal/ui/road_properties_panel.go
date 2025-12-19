@@ -19,7 +19,7 @@ type RoadPropertiesPanel struct {
 	shadowColor color.RGBA
 	
 	labels      []*Label
-	speedInput  *TextInput
+	speedInput  *NumberInput
 	widthInput  *TextInput
 	applyBtn    *Button
 	closeBtn    *Button
@@ -64,7 +64,7 @@ func (p *RoadPropertiesPanel) setupUI() {
 	speedLabel.Size = 14
 	p.labels = append(p.labels, speedLabel)
 	
-	p.speedInput = NewTextInput(p.X+15, p.Y+70, 270, 35, "40.0")
+	p.speedInput = NewNumberInput(p.X+15, p.Y+70, 270, 35, 40.0)
 	
 	widthLabel := NewLabel(p.X+15, p.Y+115, "Width:")
 	widthLabel.Size = 14
@@ -78,7 +78,7 @@ func (p *RoadPropertiesPanel) setupUI() {
 
 func (p *RoadPropertiesPanel) Show(maxSpeed, width float64) {
 	p.Visible = true
-	p.speedInput.SetText(fmt.Sprintf("%.1f", maxSpeed))
+	p.speedInput.SetNumber( maxSpeed)
 	p.widthInput.SetText(fmt.Sprintf("%.1f", width))
 }
 
@@ -134,7 +134,8 @@ func (p *RoadPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	
 	p.applyBtn.Update(mouseX, mouseY, clicked)
 	if p.applyBtn.pressed && p.onApply != nil {
-		maxSpeed, _ := strconv.ParseFloat(p.speedInput.GetText(), 64)
+		maxSpeed:=p.speedInput.GetNumber()
+		
 		width, _ := strconv.ParseFloat(p.widthInput.GetText(), 64)
 		
 		if maxSpeed <= 0 {
