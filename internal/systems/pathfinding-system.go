@@ -124,7 +124,7 @@ func (ps *PathfindingSystem) buildRoadGraph(w *world.World) {
 func (ps *PathfindingSystem) assignTarget(v *vehicle.Vehicle, w *world.World) {
 	activeDespawns := make([]*road.DespawnPoint, 0)
 	for _, dp := range w.DespawnPoints {
-		if dp.Enabled {
+		if dp.Enabled && dp.Node.ID != v.Road.From.ID {
 			activeDespawns = append(activeDespawns, dp)
 		}
 	}

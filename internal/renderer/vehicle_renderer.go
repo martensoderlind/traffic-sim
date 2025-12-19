@@ -17,7 +17,7 @@ type VehicleRenderer struct{
 func NewVehicleRenderer() *VehicleRenderer {
 	return &VehicleRenderer{
 		shadowOffset: 2.0,
-		showTargetLines: false,
+		showTargetLines: true,
 	}
 }
 
