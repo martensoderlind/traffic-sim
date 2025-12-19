@@ -74,7 +74,7 @@ func (ps *PathfindingSystem) Update(w *world.World, dt float64) {
 
 	for _, v := range w.Vehicles {
 		if v.InTransition {
-			ps.updateTransition(v, w, dt)
+			ps.updateTransition(v, dt)
 			continue
 		}
 		
@@ -313,7 +313,7 @@ func (ps *PathfindingSystem) startTransition(v *vehicle.Vehicle) {
 	v.TransitionSpeed = v.Speed
 }
 
-func (ps *PathfindingSystem) updateTransition(v *vehicle.Vehicle, w *world.World, dt float64) {
+func (ps *PathfindingSystem) updateTransition(v *vehicle.Vehicle, dt float64) {
 	if v.TransitionCurve == nil {
 		v.InTransition = false
 		return
