@@ -1,9 +1,7 @@
 package ui
 
 import (
-	"fmt"
 	"image/color"
-	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,7 +18,7 @@ type RoadPropertiesPanel struct {
 	
 	labels      []*Label
 	speedInput  *NumberInput
-	widthInput  *TextInput
+	widthInput  *NumberInput
 	applyBtn    *Button
 	closeBtn    *Button
 	
@@ -70,7 +68,7 @@ func (p *RoadPropertiesPanel) setupUI() {
 	widthLabel.Size = 14
 	p.labels = append(p.labels, widthLabel)
 	
-	p.widthInput = NewTextInput(p.X+15, p.Y+135, 270, 35, "8.0")
+	p.widthInput = NewNumberInput(p.X+15, p.Y+135, 270, 35, 8.0)
 	
 	p.applyBtn = NewButton(p.X+22, p.Y+200, 90, 30, "Apply", nil)
 	p.closeBtn = NewButton(p.X+188,p.Y+200, 90, 30, "Close", nil)
@@ -79,7 +77,7 @@ func (p *RoadPropertiesPanel) setupUI() {
 func (p *RoadPropertiesPanel) Show(maxSpeed, width float64) {
 	p.Visible = true
 	p.speedInput.SetNumber( maxSpeed)
-	p.widthInput.SetText(fmt.Sprintf("%.1f", width))
+	p.widthInput.SetNumber( width)
 }
 
 func (p *RoadPropertiesPanel) Hide() {
@@ -136,7 +134,7 @@ func (p *RoadPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	if p.applyBtn.pressed && p.onApply != nil {
 		maxSpeed:=p.speedInput.GetNumber()
 		
-		width, _ := strconv.ParseFloat(p.widthInput.GetText(), 64)
+		width:= p.widthInput.GetNumber()
 		
 		if maxSpeed <= 0 {
 			maxSpeed = 40.0
