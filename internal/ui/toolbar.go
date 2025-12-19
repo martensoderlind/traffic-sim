@@ -52,7 +52,7 @@ func (tb *Toolbar) setupUI() {
 	btnWidth := 120.0
 	btnHeight := 35.0
 	spacingX := 10.0
-	spacingY:= 25.0
+	spacingY:= 20.0
 	currentX := 15.0
 	
 	tb.normalModeBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Normal (ESC)", func() {
@@ -135,15 +135,18 @@ func (tb *Toolbar) setupUI() {
 	
 	tb.loadBtn = NewButton(currentX, btnY, btnWidth, btnHeight, "Load (Ctrl+O)", nil)
 	tb.uiManager.AddButton(tb.loadBtn)
+	
 	btnY += btnHeight + spacingY
-	tb.modeIndicator = NewLabel(18, btnY+3, "Mode: Normal")
+
+	tb.modeIndicator = NewLabel(26, btnY+3, "Mode: Normal")
 	tb.modeIndicator.Size = 13
 	tb.modeIndicator.Color = color.RGBA{240, 240, 245, 255}
 	tb.modeIndicator.SetBackground(color.RGBA{45, 50, 65, 240})
 	tb.uiManager.AddLabel(tb.modeIndicator)
-	btnY += 27 + spacingY
+	
+	btnY += 40 + spacingY
 
-	tb.simulationState = NewLabel(18, btnY, "Simulation: Running")
+	tb.simulationState = NewLabel(26, btnY, "Simulation: Running")
 	tb.simulationState.Size = 13
 	tb.simulationState.Color = color.RGBA{240, 240, 245, 255}
 	tb.simulationState.SetBackground(color.RGBA{45, 55, 45, 240})
