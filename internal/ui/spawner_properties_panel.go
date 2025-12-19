@@ -19,11 +19,11 @@ type SpawnerPropertiesPanel struct {
 	shadowColor color.RGBA
 
 	labels      []*Label
-	inputs []*TextInput
-	IntervalInput *TextInput 
-	MinSpeedInput *TextInput 
-	MaxSpeedInput *TextInput
-	MaxVehiclesInput *TextInput
+	inputs []*NumberInput
+	IntervalInput *NumberInput 
+	MinSpeedInput *NumberInput 
+	MaxSpeedInput *NumberInput
+	MaxVehiclesInput *NumberInput
 	EnabledInput *TextInput
 
 	applyBtn    *Button
@@ -69,55 +69,64 @@ func (p *SpawnerPropertiesPanel) setupUI() {
 	titleLabel.Color = color.RGBA{255, 255, 255, 255}
 	p.labels = append(p.labels, titleLabel)
 	
+	yOffset := 50
+
 	intervalLabel := NewLabel(p.X+15, p.Y+50, "Interval:")
 	intervalLabel.Size = 14
 	p.labels = append(p.labels, intervalLabel)
 	
-	p.IntervalInput = NewTextInput(p.X+15, p.Y+70, 270, 35, "3.0")
+	p.IntervalInput = NewNumberInput(p.X+15, p.Y+70, 270, 35, 3.0)
 	p.inputs=append(p.inputs, p.IntervalInput)
 
-	minSpeedLabel := NewLabel(p.X+15, p.Y+120, "Min Speed:")
+	yOffset += 100
+	minSpeedLabel := NewLabel(p.X+15, p.Y+150, "Min Speed:")
 	minSpeedLabel.Size = 14
 	p.labels = append(p.labels, minSpeedLabel)
 	
-	p.MinSpeedInput = NewTextInput(p.X+15, p.Y+140, 270, 35, "20.0")
+	p.MinSpeedInput = NewNumberInput(p.X+15, p.Y+170, 270, 35, 20)
 	p.inputs=append(p.inputs, p.MinSpeedInput)
+	
+	yOffset += 100
 
-	maxSpeedLabel := NewLabel(p.X+15, p.Y+190, "Max Speed:")
+	maxSpeedLabel := NewLabel(p.X+15, p.Y+250, "Max Speed:")
 	maxSpeedLabel.Size = 14
 	p.labels = append(p.labels, maxSpeedLabel)
 	
-	p.MaxSpeedInput = NewTextInput(p.X+15, p.Y+210, 270, 35, "50.0")
+	p.MaxSpeedInput = NewNumberInput(p.X+15, p.Y+270, 270, 35, 50)
 	p.inputs=append(p.inputs, p.MaxSpeedInput)
 
-	maxVehiclesLabel := NewLabel(p.X+15, p.Y+260, "Max vehicles:")
+	yOffset += 100
+
+	maxVehiclesLabel := NewLabel(p.X+15, p.Y+350, "Max vehicles:")
 	maxVehiclesLabel.Size = 14
 	p.labels = append(p.labels, maxVehiclesLabel)
 	
-	p.MaxVehiclesInput = NewTextInput(p.X+15, p.Y+280, 270, 35, "50")
+	p.MaxVehiclesInput = NewNumberInput(p.X+15, p.Y+350+20, 270, 35, 50)
 	p.inputs=append(p.inputs, p.MaxVehiclesInput)
 
-	enabledLabel := NewLabel(p.X+15, p.Y+330, "Enabled:")
+	yOffset += 100
+
+	enabledLabel := NewLabel(p.X+15, p.Y+550.0, "Enabled:")
 	enabledLabel.Size = 14
 	p.labels = append(p.labels, enabledLabel)
 	
-	p.EnabledInput = NewTextInput(p.X+15, p.Y+350, 270, 35, "true")
-	p.inputs=append(p.inputs, p.EnabledInput)
+	p.EnabledInput = NewTextInput(p.X+15, p.Y+250+20, 270, 35, "true")
+	
+	yOffset += 50
 
-	p.applyBtn = NewButton(p.X+140, p.Y+420, p.btnWidth, p.btnHeight, "Apply ", nil)
-	p.closeBtn = NewButton(p.X+225,p.Y+420,p.btnWidth, p.btnHeight, "Close ", func() {
+	p.applyBtn = NewButton(p.X+140, p.Y+500, p.btnWidth, p.btnHeight, "Apply ", nil)
+	p.closeBtn = NewButton(p.X+225,p.Y+500,p.btnWidth, p.btnHeight, "Close ", func() {
 	})
-	// p.normalModeBtn = NewButton(p.X+90, p.Y+420, p.btnWidth, p.btnHeight, "Normal (ESC)", func() {
-	// })
+	
 	p.calculateHeight()
 }
 
 func (p *SpawnerPropertiesPanel) Show(Interval,MinSpeed,MaxSpeed float64, MaxVehicles int,Enabled bool) {
 	p.Visible = true
-	p.IntervalInput.SetText(fmt.Sprintf("%.1f", Interval))
-	p.MinSpeedInput.SetText(fmt.Sprintf("%.1f", MinSpeed))
-	p.MaxSpeedInput.SetText(fmt.Sprintf("%.1f", MaxSpeed))
-	p.MaxVehiclesInput.SetText(fmt.Sprintf("%d", MaxVehicles))
+	p.IntervalInput.SetNumber( Interval)
+	p.MinSpeedInput.SetNumber( MinSpeed)
+	p.MaxSpeedInput.SetNumber( MaxSpeed)
+	p.MaxVehiclesInput.SetNumber( float64(MaxVehicles))
 	p.EnabledInput.SetText(fmt.Sprintf("%t", Enabled))
 }
 
@@ -138,24 +147,34 @@ func (p *SpawnerPropertiesPanel) SetPosition(x, y float64) {
 func (p *SpawnerPropertiesPanel) updateUIPositions() {
 	yOffset := 15.0
 	
-	for _, label := range p.labels {
+	for i, label := range p.labels {
 		label.X = p.X + 15
 		label.Y = p.Y + yOffset
-		yOffset += 35
+		if i == 0 {
+			yOffset += 35
+		} else {
+			yOffset += 70
+		}
 	}
 	
 	yOffset = 70.0
 	for _, input := range p.inputs {
 		input.X = p.X + 15
 		input.Y = p.Y + yOffset
-		yOffset += 50
+		input.incrementValueBtn.X = input.X + input.Width - 30
+		input.incrementValueBtn.Y = input.Y + 5
+		input.decrementValueBtn.X = input.X + input.Width - 60
+		input.decrementValueBtn.Y = input.Y + 5
+		yOffset += 70
 	}
-	
+	p.EnabledInput.X = p.X + 15
+	p.EnabledInput.Y = p.Y + yOffset
+
 	p.applyBtn.X = p.X + 140
-	p.applyBtn.Y = p.Y + 420
+	p.applyBtn.Y = p.Y + 480
 	
 	p.closeBtn.X = p.X + 225
-	p.closeBtn.Y = p.Y + 420
+	p.closeBtn.Y = p.Y + 480
 }
 
 func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
@@ -171,10 +190,10 @@ func (p *SpawnerPropertiesPanel) Update(mouseX, mouseY int, clicked bool) {
 	
 	p.applyBtn.Update(mouseX, mouseY, clicked)
 	if p.applyBtn.pressed && p.onApply != nil {
-		Interval,_:=strconv.ParseFloat(p.IntervalInput.GetText(), 64)
-		MinSpeed,_:=strconv.ParseFloat(p.MinSpeedInput.GetText(), 64)
-		MaxSpeed,_:=strconv.ParseFloat(p.MaxSpeedInput.GetText(), 64)
-		MaxVehicles, _:= strconv.Atoi(p.MaxVehiclesInput.GetText())
+		Interval:=p.IntervalInput.GetNumber()
+		MinSpeed:=p.MinSpeedInput.GetNumber()
+		MaxSpeed:=p.MaxSpeedInput.GetNumber()
+		MaxVehicles:= int(p.MaxVehiclesInput.GetNumber())
 		Enabled, _:= strconv.ParseBool(p.EnabledInput.GetText())
 	
 		if MinSpeed <= 0 {
@@ -233,5 +252,7 @@ func (p *SpawnerPropertiesPanel) calculateHeight() {
 	for _, input := range p.inputs {
 		p.Height += input.Height + 7
 	}
+	p.Height += p.EnabledInput.Height + 7
 	p.Height += p.applyBtn.Height 
+	fmt.Println("Calculated panel height:", p.Height)
 }
