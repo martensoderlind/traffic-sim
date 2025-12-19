@@ -7,6 +7,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+type ButtonSizeMode int
+
+const (
+	ButtonAutoSize ButtonSizeMode = iota
+	ButtonFixedSize
+)
+
 type Button struct {
 	X, Y          float64
 	Width, Height float64
@@ -28,6 +35,8 @@ type Button struct {
 	IconWidth  float64
 	IconHeight float64
 
+	SizeMode ButtonSizeMode
+
 }
 
 func NewButton(x, y, width, height float64, text string, onClick func()) *Button {
@@ -45,6 +54,7 @@ func NewButton(x, y, width, height float64, text string, onClick func()) *Button
 		pressColor:  color.RGBA{50, 50, 60, 255},
 		textColor:   color.RGBA{220, 220, 220, 255},
 		borderColor: color.RGBA{100, 100, 110, 255},
+		SizeMode: ButtonAutoSize,
 	}
 }
 
@@ -83,8 +93,8 @@ func (b *Button) SetIcon(img *ebiten.Image, w, h float64) {
 
 func (b *Button) Draw(screen *ebiten.Image) {
 	bgColor := b.bgColor
-	buttonHeight := b.calculateHeight()
-	buttonWidth:= b.calculateWidth()
+	buttonWidth := b.getWidth()
+	buttonHeight := b.getHeight()
 	if b.pressed {
 		bgColor = b.pressColor
 	} else if b.hovered {
@@ -133,6 +143,21 @@ func (b *Button) Draw(screen *ebiten.Image) {
 
 	text.Draw(screen, b.Text, face, textOp)
 }
+
+func (b *Button) getWidth() float32 {
+	if b.SizeMode == ButtonFixedSize {
+		return float32(b.Width)
+	}
+	return b.calculateWidth()
+}
+
+func (b *Button) getHeight() float32 {
+	if b.SizeMode == ButtonFixedSize {
+		return float32(b.Height)
+	}
+	return b.calculateHeight()
+}
+
 
 func (b *Button) calculateHeight()float32 {
 	face := &text.GoTextFace{
